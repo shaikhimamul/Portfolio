@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NAVIA — LPU 3D Campus Digital Twin</title>
+  <meta name="description" content="LPU 3D Spatial Intelligence & Digital Campus Platform — Built with MapLibre GL & Gemini AI"/>
+
+  <!-- MapLibre GL CSS & JS -->
+  <link href="libs/maplibre-gl.css" rel="stylesheet" />
+  <script src="libs/maplibre-gl.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #090a0f;
+      --surface: rgba(14, 18, 28, 0.92);
+      --surface-border: rgba(255, 255, 255, 0.12);
+      --cyan: #00f0ff;
+      --blue: #0077b6;
+      --crimson: #dc143c;
+      --orange: #ff7700;
+      --gold: #f5c518;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    #map {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0; left: 0;
+    }
+
+    .maplibregl-canvas { outline: none; }
+    .maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { display: none !important; }
+
+    /* ═══════════════ TOP HEADER & FILTERS ═══════════════ */
+    .top-bar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .top-bar > * { pointer-events: auto; }
+
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      padding: 7px 14px;
+      border-radius: 99px;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      transition: all 0.2s;
+    }
+    .brand-pill:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+    }
+    .brand-monogram {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 1px;
+    }
+    .brand-title span { color: var(--orange); }
+    .brand-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 2px 7px;
+      border-radius: 99px;
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 6px;
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      padding: 5px;
+      border-radius: 99px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      overflow-x: auto;
+      max-width: calc(100vw - 420px);
+    }
+    .category-pills::-webkit-scrollbar { display: none; }
+    .cat-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 13px;
+      border-radius: 99px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .cat-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+    .cat-btn.active {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(0, 119, 182, 0.35));
+      border-color: rgba(0, 240, 255, 0.5);
+      color: #fff;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
+    }
+
+    .top-right-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tool-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--surface-border);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .tool-btn:hover {
+      color: var(--cyan);
+      border-color: var(--cyan);
+      transform: scale(1.05);
+    }
+
+    /* ═══════════════ HIGH-VISIBILITY 3D CAMPUS BEACONS & LABELS ═══════════════ */
+    .beacon-pin {
+      position: absolute !important;
+      width: auto !important;
+      height: auto !important;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      z-index: 20;
+    }
+    .beacon-pin:hover {
+      z-index: 1000 !important;
+    }
+    .beacon-tag {
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(10, 15, 28, 0.94);
+      border: 1px solid rgba(0, 240, 255, 0.65);
+      backdrop-filter: blur(14px);
+      padding: 5px 11px;
+      border-radius: 20px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.85), 0 0 16px rgba(0, 240, 255, 0.45);
+      margin-bottom: 4px;
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
+    }
+    .beacon-tag:hover {
+      transform: scale(1.08);
+      border-color: #ffffff;
+      box-shadow: 0 6px 26px rgba(0, 240, 255, 0.8);
+    }
+    .beacon-name {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.3px;
+    }
+    .beacon-coords {
+      font-size: 0.62rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--cyan);
+      opacity: 0.95;
+    }
+    .beacon-core {
+      pointer-events: auto;
+      cursor: pointer;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00f0ff;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 14px #00f0ff, 0 0 28px rgba(0, 240, 255, 0.9);
+      position: relative;
+      z-index: 2;
+      transition: transform 0.2s;
+    }
+    .beacon-core:hover {
+      transform: scale(1.3);
+    }
+    .beacon-pulse {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 240, 255, 0.4);
+      position: absolute;
+      top: -8px; left: -8px;
+      animation: beaconPulse 2s ease-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .beacon-stem {
+      width: 2px;
+      height: 16px;
+      background: linear-gradient(to bottom, #00f0ff, rgba(0, 240, 255, 0.15));
+      box-shadow: 0 0 8px #00f0ff;
+    }
+    @keyframes beaconPulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+/* MapLibre Popup Dark Theme Overrides */
+    .maplibregl-popup-content {
+      background: rgba(10, 15, 28, 0.96) !important;
+      border: 1px solid rgba(0, 240, 255, 0.5) !important;
+      backdrop-filter: blur(16px) !important;
+      border-radius: 14px !important;
+      padding: 14px 16px !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85), 0 0 20px rgba(0, 240, 255, 0.3) !important;
+      color: #f1f5f9 !important;
+      width: 260px !important;
+    }
+    .maplibregl-popup-tip {
+      border-top-color: rgba(10, 15, 28, 0.96) !important;
+      border-bottom-color: rgba(10, 15, 28, 0.96) !important;
+    }
+    .maplibregl-popup-close-button {
+      color: #94a3b8 !important;
+      font-size: 1.1rem !important;
+      padding: 4px 8px !important;
+      top: 6px !important;
+      right: 6px !important;
+    }
+    .maplibregl-popup-close-button:hover {
+      color: #ffffff !important;
+    }
+    .popup-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .popup-cat-badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      padding: 2px 8px;
+      border-radius: 99px;
+      width: max-content;
+    }
+    .popup-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .popup-desc {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .popup-coords {
+      font-size: 0.62rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--cyan);
+    }
+    .popup-meta {
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #e2e8f0;
+      margin-top: 2px;
+    }
+    .popup-action-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 4px;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .popup-action-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    /* ═══════════════ BOTTOM DOCKED TOOLBAR ═══════════════ */
+    .bottom-dock-wrap {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+    }
+    .bottom-dock {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(12, 17, 28, 0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 6px 10px;
+      border-radius: 99px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0, 240, 255, 0.1);
+    }
+    .dock-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 99px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .dock-btn i { font-size: 0.88rem; }
+    .dock-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .dock-btn.gemini-pill {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border: 1px solid rgba(147, 197, 253, 0.4);
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+    }
+    .dock-btn.gemini-pill:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      transform: translateY(-1px);
+      box-shadow: 0 0 26px rgba(37, 99, 235, 0.7);
+    }
+
+    /* ═══════════════ HUD OVERLAYS ═══════════════ */
+    .hud-bottom-left {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .compass-disc {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(14, 18, 28, 0.9);
+      border: 1.5px solid var(--cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan);
+      font-weight: 800;
+      font-size: 0.75rem;
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.3);
+      cursor: pointer;
+      pointer-events: auto;
+      transition: transform 0.3s;
+    }
+    .compass-disc:hover { transform: scale(1.1); }
+    .hud-attribution {
+      font-size: 0.68rem;
+      color: var(--muted);
+      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      line-height: 1.3;
+    }
+    .hud-attribution strong { color: #e2e8f0; }
+
+    .hud-bottom-right {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 15;
+      pointer-events: none;
+    }
+    .hud-tag {
+      background: rgba(14, 18, 28, 0.85);
+      border: 1px solid var(--surface-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--muted);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+
+    /* ═══════════════ SLIDE-OVER PANELS & DRAWERS ═══════════════ */
+    .drawer {
+      position: absolute;
+      top: 70px;
+      bottom: 80px;
+      width: 380px;
+      background: rgba(11, 15, 25, 0.95);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateX(-120%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-left { left: 20px; }
+    .drawer-right { right: 20px; transform: translateX(120%); }
+    .drawer-right.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .drawer-close:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+    }
+    .drawer-body {
+      padding: 18px 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .drawer-body::-webkit-scrollbar { width: 4px; }
+    .drawer-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+
+    /* Routing UI */
+    .route-form { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+    .form-group label {
+      font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 1px; display: block; margin-bottom: 6px;
+    }
+    .form-group select {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group select:focus { border-color: var(--cyan); }
+    .form-group select option { background: #0f172a; color: #fff; }
+    .btn-action {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .route-stat-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.2rem; font-weight: 800; color: var(--cyan); }
+    .stat-lbl { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Gemini Chat */
+    .chat-container { display: flex; flex-direction: column; height: 100%; }
+    .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .chat-bubble {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      max-width: 88%;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .chat-bubble.ai {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+    }
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+    }
+    .chat-input-row { display: flex; gap: 8px; }
+    .chat-input {
+      flex: 1;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    .chat-input:focus { border-color: #3b82f6; }
+    .chat-send {
+      width: 40px; height: 40px;
+      background: #2563eb;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .building-detail-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .b-name { font-size: 1rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .b-cat { font-size: 0.65rem; color: var(--cyan); text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 8px; }
+    .b-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+
+    @media (max-width: 768px) {
+      .category-pills { max-width: 60vw; }
+      .drawer { width: calc(100vw - 32px); left: 16px; right: 16px; }
+      .hud-bottom-right { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MAP CONTAINER -->
+  <div id="map"></div>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <a href="../index.html#projects" class="brand-pill" title="Back to Portfolio">
+      <img src="../assets/navia-monogram.png" alt="NAVIA" class="brand-monogram" onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 30 30&quot;><circle cx=&quot;15&quot; cy=&quot;15&quot; r=&quot;14&quot; fill=&quot;%2300f0ff&quot;/></svg>'">
+      <div class="brand-title">N<span>AVI</span>A</div>
+      <div class="brand-badge">3D GIS TWIN</div>
+    </a>
+
+    <!-- Category Pills -->
+    <div class="category-pills">
+      <button class="cat-btn active" data-cat="all" onclick="filterCategory('all', this)"><i class="fa-solid fa-layer-group"></i> All Spots</button>
+      <button class="cat-btn" data-cat="tech" onclick="filterCategory('tech', this)"><i class="fa-solid fa-microchip"></i> Tech Labs</button>
+      <button class="cat-btn" data-cat="academic" onclick="filterCategory('academic', this)"><i class="fa-solid fa-graduation-cap"></i> Academic</button>
+      <button class="cat-btn" data-cat="hostels" onclick="filterCategory('hostels', this)"><i class="fa-solid fa-hotel"></i> Hostels</button>
+      <button class="cat-btn" data-cat="sports" onclick="filterCategory('sports', this)"><i class="fa-solid fa-futbol"></i> Sports</button>
+      <button class="cat-btn" data-cat="unimall" onclick="filterCategory('unimall', this)"><i class="fa-solid fa-bag-shopping"></i> Uni Mall</button>
+    </div>
+
+    <!-- Top Right Tools -->
+    <div class="top-right-tools">
+      <button class="tool-btn" onclick="resetCampusView()" title="Reset 3D Campus Angle"><i class="fa-solid fa-compass"></i></button>
+      <button class="tool-btn" onclick="toggle3DPitch()" title="Toggle 3D Tilt / Top-down"><i class="fa-solid fa-cube"></i></button>
+      <button class="tool-btn" onclick="toggleFullScreen()" title="Full Screen"><i class="fa-solid fa-expand"></i></button>
+    </div>
+  </div>
+
+  <!-- BOTTOM FLOATING DOCK -->
+  <div class="bottom-dock-wrap">
+    <div class="bottom-dock">
+      <button class="dock-btn" onclick="openDrawer('route-drawer')">
+        <i class="fa-solid fa-diamond-turn-right"></i> Route
+      </button>
+      <button class="dock-btn" onclick="openDrawer('layers-drawer')">
+        <i class="fa-solid fa-layer-group"></i> Layers
+      </button>
+      <button class="dock-btn" onclick="openDrawer('measure-drawer')">
+        <i class="fa-solid fa-ruler-combined"></i> Measure
+      </button>
+      <button class="dock-btn" onclick="openDrawer('vendors-drawer')">
+        <i class="fa-solid fa-store"></i> Vendors
+      </button>
+      <button class="dock-btn gemini-pill" onclick="openDrawer('gemini-drawer')">
+        <i class="fa-solid fa-sparkles"></i> Gemini AI
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM HUD OVERLAYS -->
+  <div class="hud-bottom-left">
+    <div class="compass-disc" onclick="resetCampusView()" title="Reset View">N</div>
+    <div class="hud-attribution">
+      <strong>LPU Digital Campus</strong> • MapLibre GL 3D Extrusion<br>
+      High-Res Satellite Imagery • OpenStreetMap • Esri
+    </div>
+  </div>
+
+  <div class="hud-bottom-right">
+    <div class="hud-tag">
+      WGS84 EPSG:4326 • 600+ Acres • 181 Surveyed Buildings
+    </div>
+  </div>
+
+  <!-- DRAWERS -->
+
+  <!-- 1. ROUTE DRAWER -->
+  <div class="drawer drawer-left" id="route-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-route" style="color:var(--cyan);"></i> Campus Navigator</div>
+      <button class="drawer-close" onclick="closeDrawer('route-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div class="route-form">
+        <div class="form-group">
+          <label>Origin</label>
+          <select id="route-from">
+            <option value="library" selected>Central University Library</option>
+            <option value="block34">Block 34 - Computer Science</option>
+            <option value="block31">Block 31 - Administration</option>
+            <option value="gh_complex">Girls Hostel Complex</option>
+            <option value="unimall">UniMall & Block 15</option>
+            <option value="block47">Block 47 - Sports Stadium</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Destination</label>
+          <select id="route-to">
+            <option value="unimall" selected>UniMall & Block 15</option>
+            <option value="block34">Block 34 - Computer Science</option>
+            <option value="block47">Block 47 - Sports Stadium</option>
+            <option value="library">Central University Library</option>
+            <option value="gh_complex">Girls Hostel Complex</option>
+          </select>
+        </div>
+        <button class="btn-action" onclick="calculateRoute()">
+          <i class="fa-solid fa-play"></i> Compute 3D Path
+        </button>
+      </div>
+
+      <div class="route-stat-box" id="route-stats">
+        <div>
+          <div class="stat-val" id="route-dist">430 m</div>
+          <div class="stat-lbl">Walking Distance</div>
+        </div>
+        <div>
+          <div class="stat-val" id="route-time">5.5 min</div>
+          <div class="stat-lbl">Estimated Time</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Turn-by-Turn Pedestrian Path</div>
+        <div id="route-steps" style="font-size:0.78rem;color:#cbd5e1;line-height:1.6;background:rgba(255,255,255,0.03);padding:10px 14px;border-radius:8px;border:1px solid var(--surface-border);">
+          1. Depart Central Library via North Walkway<br>
+          2. Head northeast toward Block 31 Central Plaza<br>
+          3. Continue past Polytechnic Workshops<br>
+          4. Arrive at UniMall Promenade
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. LAYERS DRAWER -->
+  <div class="drawer drawer-left" id="layers-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-layer-group" style="color:var(--cyan);"></i> Map Display Layers</div>
+      <button class="drawer-close" onclick="closeDrawer('layers-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="building-detail-card" style="cursor:pointer;" onclick="resetCampusView()">
+          <div class="b-name">🌍 High-Res 3D Satellite (Default)</div>
+          <div class="b-desc">Esri World Imagery with 181 real OSM building extrusions surveyed from Lovely Professional University.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. MEASURE DRAWER -->
+  <div class="drawer drawer-left" id="measure-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-ruler-combined" style="color:var(--cyan);"></i> Campus Measure Tool</div>
+      <button class="drawer-close" onclick="closeDrawer('measure-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <p style="font-size:0.8rem;color:var(--muted);line-height:1.5;margin-bottom:14px;">
+        Interactive ground geodesic distance ruler along LPU walkways.
+      </p>
+      <div class="route-stat-box">
+        <div><div class="stat-val" id="measure-result">340.5 m</div><div class="stat-lbl">Ground Distance</div></div>
+        <div><div class="stat-val">WGS84</div><div class="stat-lbl">Ellipsoid</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. VENDORS / UNIMALL DRAWER -->
+  <div class="drawer drawer-left" id="vendors-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-store" style="color:var(--purple);"></i> UniMall &amp; Campus Outlets</div>
+      <button class="drawer-close" onclick="closeDrawer('vendors-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div class="building-detail-card">
+        <div class="b-name">✂️ SAARSH Unisex Salon &amp; Academy</div>
+        <div class="b-cat">UniMall Level 2 · Services</div>
+        <div class="b-desc">Hair styling, grooming, and skin aesthetics. Student discounts available with LPU ID.</div>
+        <button class="btn-action" style="padding:8px 12px;font-size:0.75rem;" onclick="alert('Appointment slot requested!')">Book Appointment</button>
+      </div>
+      <div class="building-detail-card">
+        <div class="b-name">☕ Ten2Nine Cafe</div>
+        <div class="b-cat">UniMall Ground Floor · Dining</div>
+        <div class="b-desc">Artisan coffee, cold brews, and quick meals. Open 8 AM – 11 PM.</div>
+      </div>
+      <div class="building-detail-card">
+        <div class="b-name">🍛 Dogra Dhaba &amp; Majlis</div>
+        <div class="b-cat">Central Food Street · Dining</div>
+        <div class="b-desc">North Indian, thalis, and quick takeout tiffin service.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. GEMINI AI DRAWER -->
+  <div class="drawer drawer-right" id="gemini-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title"><i class="fa-solid fa-sparkles" style="color:#60a5fa;"></i> Gemini Campus AI <span style="font-size:0.65rem; background:rgba(34,197,94,0.2); color:#4ade80; border:1px solid rgba(34,197,94,0.4); padding:2px 6px; border-radius:10px; margin-left:6px;">LIVE</span></div>
+      <button class="drawer-close" onclick="closeDrawer('gemini-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body chat-container">
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-bubble ai">
+          👋 Hi! I'm NAVIA Gemini AI — your intelligent 3D campus assistant for Lovely Professional University.
+          Click any building to inspect its architectural details, or ask me about lab timings, hostel gates, and shortest routes!
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask about LPU campus…" onkeydown="if(event.key==='Enter')sendGeminiMsg()">
+        <button class="chat-send" onclick="sendGeminiMsg()"><i class="fa-solid fa-arrow-up"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. BUILDING DETAILS DRAWER -->
+  <div class="drawer drawer-right" id="building-drawer">
+    <div class="drawer-header">
+      <div class="drawer-title" id="bd-title">Building Detail</div>
+      <button class="drawer-close" onclick="closeDrawer('building-drawer')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body">
+      <div class="building-detail-card">
+        <div class="b-cat" id="bd-cat">ACADEMIC</div>
+        <div class="b-desc" id="bd-desc">Building description here.</div>
+        <div style="font-size:0.75rem;color:var(--cyan);font-family:'JetBrains Mono';margin-bottom:12px;" id="bd-height">Height: 38 meters</div>
+        <button class="btn-action" id="bd-nav-btn" onclick="navToThisBuilding()"><i class="fa-solid fa-diamond-turn-right"></i> Navigate Here</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    // Exact campus center for Lovely Professional University, Phagwara, Punjab
+    const LPU_CENTER = [75.7044, 31.2546];
+    const CAMPUS_GEOJSON = {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"library","name":"Central University Library & Research Archives","category":"academic","height":25.2,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Central University Library with 400,000+ volumes, digital archives, and 24/7 study rooms.","levels":6,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7023591,31.2526378],[75.7026639,31.2523904],[75.702664,31.252541],[75.7027572,31.252538],[75.7027557,31.2523877],[75.7030538,31.2523821],[75.7030566,31.2525242],[75.7031651,31.2525268],[75.7031622,31.2523802],[75.7034609,31.2523756],[75.7034623,31.2525144],[75.703588,31.2525171],[75.7035879,31.2523754],[75.7038714,31.2523747],[75.7038701,31.252514],[75.7039938,31.2525143],[75.7039938,31.2523726],[75.7041915,31.2523564],[75.7044071,31.2528512],[75.7039854,31.2528548],[75.7039908,31.2527016],[75.7038848,31.2527026],[75.7038881,31.2528569],[75.7035774,31.2528562],[75.7035751,31.2527008],[75.7034706,31.252699],[75.7034736,31.2528584],[75.703162,31.2528601],[75.7031606,31.2527083],[75.7030605,31.2527063],[75.7030665,31.2528673],[75.7027368,31.2528693],[75.7027343,31.2527141],[75.7026495,31.2527165],[75.7026516,31.252872],[75.702359,31.2528747],[75.7023591,31.2526378]]]}},{"type":"Feature","properties":{"id":"block34","name":"Block 34 - Computer Science & Engineering","category":"tech","height":29.4,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"School of Computer Science & Engineering, AI/ML Innovation Labs, and Apple Mac suites.","levels":7,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7030198,31.2553572],[75.703067,31.2553568],[75.7031166,31.2553564],[75.7031845,31.2553559],[75.7031842,31.255328],[75.7033185,31.2553269],[75.703319,31.2553746],[75.7033887,31.2553741],[75.7033881,31.2553255],[75.7035036,31.2553245],[75.703504,31.2553678],[75.7036986,31.2553662],[75.7036958,31.2551164],[75.7035075,31.255118],[75.7035085,31.2552107],[75.7034374,31.2552113],[75.7034363,31.255116],[75.7032652,31.2551174],[75.7032664,31.2552169],[75.70317,31.2552177],[75.7031691,31.2551379],[75.7030173,31.2551392],[75.7030198,31.2553572]]]}},{"type":"Feature","properties":{"id":"block57_58","name":"Blocks 57 & 58 - Polytechnic & Student Project Labs","category":"tech","height":21,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Polytechnic workshops, rapid prototyping, and robotics project bays.","levels":5,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7039977,31.2553722],[75.7040997,31.2553676],[75.7040943,31.2550283],[75.7039951,31.2550283],[75.7039977,31.2553722]]]}},{"type":"Feature","properties":{"id":"block18","name":"Block 18 - School of Education & Humanities","category":"academic","height":21,"min_height":0,"color":"#0077b6","roof_color":"#00b4d8","desc":"School of Education & Humanities, smart seminar halls, and faculty rooms.","levels":5,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7041875,31.2555725],[75.70418,31.2544427],[75.7049159,31.254458],[75.7053925,31.2550042],[75.7053642,31.2555656],[75.7041875,31.2555725]]]}},{"type":"Feature","properties":{"id":"block47","name":"Block 47 - Indoor Sports Stadium Complex","category":"sports","height":16.8,"min_height":0,"color":"#f77f00","roof_color":"#fcbf49","desc":"Indoor Olympic-standard wooden basketball courts, badminton arena, and gym.","levels":4,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7054469,31.2567139],[75.7054377,31.2563154],[75.7056189,31.2563124],[75.7056207,31.2563888],[75.7059298,31.2563836],[75.7059374,31.2567079],[75.7057427,31.2567112],[75.7057356,31.2564075],[75.7056331,31.2564092],[75.7056401,31.2567106],[75.7054469,31.2567139]]]}},{"type":"Feature","properties":{"id":"unimall","name":"UniMall & Block 15 (Hotel Management)","category":"unimall","height":25.2,"min_height":0,"color":"#7209b7","roof_color":"#b5179e","desc":"Multi-storey commercial shopping complex, SAARSH Salon, food outlets, and ATMs.","levels":6,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7041937,31.2555946],[75.7055524,31.2556051],[75.7056056,31.2556056],[75.7056366,31.2556271],[75.7057229,31.2558008],[75.705743,31.2558703],[75.7057164,31.255909],[75.705668,31.2559189],[75.7042688,31.2557184],[75.7042446,31.2557138],[75.7042205,31.2556932],[75.7042071,31.2556588],[75.7041937,31.2555946]]]}},{"type":"Feature","properties":{"id":"blocks13_14","name":"Blocks 13 & 14 - Mittal School of Business & DSW","category":"academic","height":25.2,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Mittal School of Business and Division of Student Welfare (DSW).","levels":6,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7055654,31.2543045],[75.7055679,31.254163],[75.7058919,31.2541672],[75.7058894,31.2543088],[75.7055654,31.2543045]]]}},{"type":"Feature","properties":{"id":"gh_complex","name":"Girls Hostel Complex (GH 9-12, 21)","category":"hostels","height":25.2,"min_height":0,"color":"#06d6a0","roof_color":"#2ec4b6","desc":"Secure multi-tower girls residential blocks with biometric entry turnstiles.","levels":6,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7049029,31.2530754],[75.7049032,31.2530582],[75.704926,31.2530585],[75.7049257,31.2530757],[75.7049029,31.2530754]]]}},{"type":"Feature","properties":{"id":"bldg_354743583","name":"Lovely Institute Of Management","category":"academic","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7085428,31.2586157],[75.7086325,31.2586888],[75.7087295,31.2586057],[75.7087481,31.2586338],[75.7087387,31.258794],[75.7088704,31.2587996],[75.7088655,31.2588834],[75.7089471,31.2588869],[75.7089498,31.2588408],[75.7090669,31.2588458],[75.7090763,31.2586853],[75.7089476,31.2586798],[75.7089504,31.2586326],[75.7089855,31.258604],[75.7090203,31.2586353],[75.7090995,31.2585709],[75.7090401,31.2585175],[75.7090962,31.2584719],[75.709006,31.2583908],[75.7089514,31.2584352],[75.7089036,31.2583923],[75.7088459,31.2584393],[75.7087965,31.2583949],[75.7087279,31.2584507],[75.708678,31.2584058],[75.7086302,31.2584447],[75.7086886,31.2584972],[75.7085428,31.2586157]]]}},{"type":"Feature","properties":{"id":"bldg_354755644","name":"Lovely Institute of Technology","category":"tech","height":26.6,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (7 storeys).","levels":7,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7068406,31.2578303],[75.706805,31.2578308],[75.7067245,31.2578318],[75.7067294,31.2581364],[75.7068812,31.2581345],[75.7068782,31.2579487],[75.7069625,31.2579477],[75.7069655,31.2581316],[75.7071617,31.2581296],[75.7071581,31.2577641],[75.7069277,31.2577677],[75.7069266,31.2576996],[75.7067618,31.2577016],[75.7067633,31.2577961],[75.7068401,31.2577951],[75.7068406,31.2578303]]]}},{"type":"Feature","properties":{"id":"bldg_354830243","name":"Lovely Institute of Pharmacy","category":"academic","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7075066,31.2574198],[75.7075934,31.2574979],[75.707538,31.257551],[75.7076122,31.2576106],[75.70755,31.257659],[75.7075063,31.2576229],[75.7074533,31.2576669],[75.7074031,31.2576195],[75.7073506,31.2576619],[75.7073067,31.2576271],[75.7072415,31.2576749],[75.7071944,31.2576268],[75.7070803,31.2577265],[75.7069996,31.2576473],[75.7069811,31.2576768],[75.7069998,31.2577039],[75.7070016,31.2577312],[75.7069535,31.2577384],[75.7069448,31.2576835],[75.706959,31.2576493],[75.7071077,31.2575179],[75.7073802,31.2575187],[75.7075066,31.2574198]]]}},{"type":"Feature","properties":{"id":"bldg_422323508","name":"Campus Block 3508","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.70313,31.2489551],[75.7031595,31.2488955],[75.7031353,31.2488725],[75.7031622,31.2488129],[75.7031353,31.2487969],[75.7031648,31.2487281],[75.703138,31.2487166],[75.7031702,31.2486478],[75.7031997,31.2486593],[75.7032158,31.2486341],[75.7031514,31.2486065],[75.7031729,31.2485332],[75.7031461,31.2485194],[75.7031756,31.2484598],[75.7031487,31.2484483],[75.7031863,31.2483818],[75.7032909,31.2484116],[75.7033794,31.2484093],[75.7033768,31.2484905],[75.7033761,31.2485112],[75.7033606,31.2489895],[75.7032185,31.2489872],[75.70313,31.2489551]]]}},{"type":"Feature","properties":{"id":"bldg_422437887","name":"Campus Block 7887","category":"campus","height":41.8,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (11 storeys).","levels":11,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7054065,31.254307],[75.7056801,31.2548045],[75.7058871,31.2548049],[75.7058894,31.2543088],[75.7055654,31.2543045],[75.7054065,31.254307]]]}},{"type":"Feature","properties":{"id":"bldg_422437895","name":"Campus Block 7895","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7018918,31.2520603],[75.7020807,31.2520624],[75.7021031,31.2516484],[75.701905,31.2516483],[75.7018918,31.2520603]]]}},{"type":"Feature","properties":{"id":"bldg_422437896","name":"Campus Block 7896","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7015956,31.2520538],[75.7017919,31.2520552],[75.7018073,31.2516457],[75.7016108,31.2516494],[75.7015956,31.2520538]]]}},{"type":"Feature","properties":{"id":"bldg_422437897","name":"Campus Block 7897","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.70115,31.2518293],[75.7011392,31.252005],[75.7009368,31.2519913],[75.7009339,31.2516083],[75.7011526,31.2516019],[75.7011462,31.2517605],[75.7012803,31.2517723],[75.7012865,31.2516281],[75.7014726,31.2516316],[75.701463,31.2522713],[75.7012564,31.2522593],[75.7012614,31.251831],[75.70115,31.2518293]]]}},{"type":"Feature","properties":{"id":"bldg_422437898","name":"Campus Block 7898","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7040155,31.2564311],[75.7040094,31.2561033],[75.7041922,31.2561008],[75.7044836,31.2560969],[75.7044864,31.256251],[75.7045804,31.2562497],[75.7045781,31.256124],[75.7047745,31.2561213],[75.7047767,31.2562387],[75.7048608,31.2562375],[75.7048601,31.2562005],[75.7050473,31.2561978],[75.7050482,31.2562459],[75.7053476,31.2562416],[75.7053511,31.2564201],[75.7051652,31.2564227],[75.7051622,31.2562671],[75.7050477,31.2562687],[75.7050505,31.2564158],[75.7048833,31.2564181],[75.7048803,31.2562648],[75.704758,31.2562665],[75.7047609,31.2564204],[75.704599,31.2564227],[75.7045961,31.2562716],[75.7044816,31.2562731],[75.7044844,31.2564199],[75.7043071,31.2564223],[75.7043044,31.2562734],[75.7041993,31.2562749],[75.7042022,31.2564285],[75.7040155,31.2564311]]]}},{"type":"Feature","properties":{"id":"bldg_422437899","name":"Block 31 - Chancellor Secretariat & Administration","category":"academic","height":34,"min_height":0,"color":"#023e8a","roof_color":"#03045e","desc":"Executive Administration, Chancellor Secretariat, and Student Registrar.","levels":8,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.7037174,31.2560829],[75.7037201,31.2559866],[75.7041922,31.256021],[75.7041922,31.2561008],[75.7040094,31.2561033],[75.7039776,31.2560783],[75.7039427,31.2560737],[75.7037174,31.2560829]]]}},{"type":"Feature","properties":{"id":"bldg_422437900","name":"Campus Block 7900","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7045972,31.256729],[75.7046025,31.2569519],[75.7047393,31.2569473],[75.7047313,31.2567276],[75.7049075,31.2567265],[75.704903,31.2569381],[75.7049807,31.2569427],[75.7049834,31.2570436],[75.7044362,31.2570459],[75.7044329,31.25673],[75.7045972,31.256729]]]}},{"type":"Feature","properties":{"id":"bldg_422437901","name":"Campus Block 7901","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7044329,31.25673],[75.7044307,31.256484],[75.7046014,31.2564828],[75.7046033,31.256699],[75.7047242,31.2566982],[75.7047222,31.2564788],[75.7049053,31.2564776],[75.7049075,31.2567265],[75.7047313,31.2567276],[75.7045972,31.256729],[75.7044329,31.25673]]]}},{"type":"Feature","properties":{"id":"bldg_422437904","name":"Campus Block 7904","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.70513,31.2568629],[75.7054848,31.2571451],[75.7055279,31.2571091],[75.7055469,31.2570933],[75.705598,31.2570506],[75.7054754,31.2569611],[75.7055946,31.2568599],[75.7055404,31.2568203],[75.7055141,31.2568012],[75.7054742,31.256772],[75.7053618,31.2568753],[75.7052303,31.2567707],[75.70513,31.2568629]]]}},{"type":"Feature","properties":{"id":"bldg_422437906","name":"Campus Block 7906","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.705598,31.2570506],[75.7056482,31.2570935],[75.705665,31.2571078],[75.7057077,31.2571443],[75.7058254,31.2570436],[75.7057829,31.2570106],[75.7057624,31.2569947],[75.7057161,31.2569588],[75.705598,31.2570506]]]}},{"type":"Feature","properties":{"id":"bldg_422437908","name":"Campus Block 7908","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7055946,31.2568599],[75.7057161,31.2569588],[75.705755,31.2569239],[75.705772,31.2569086],[75.7058158,31.2568693],[75.7056942,31.2567704],[75.7056574,31.2568035],[75.705639,31.25682],[75.7055946,31.2568599]]]}},{"type":"Feature","properties":{"id":"bldg_422547035","name":"Campus Block 7035","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7078034,31.2592439],[75.707882,31.2592378],[75.7079008,31.2592745],[75.7079855,31.2592714],[75.7079805,31.2591727],[75.7078525,31.2591782],[75.7078659,31.2591232],[75.7079963,31.2591132],[75.7079817,31.2589737],[75.707906,31.2589796],[75.7078998,31.2589205],[75.7078095,31.2589275],[75.7078133,31.2589638],[75.7078482,31.2589612],[75.7078534,31.2590106],[75.7078093,31.259014],[75.7078122,31.2590413],[75.7077822,31.2590436],[75.7077934,31.2591494],[75.7078034,31.2592439]]]}},{"type":"Feature","properties":{"id":"bldg_422547443","name":"Campus Block 7443","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7034876,31.2489915],[75.7036968,31.2489938],[75.7037078,31.248518],[75.7037082,31.2484985],[75.7037175,31.2480972],[75.7037179,31.2480778],[75.703729,31.247595],[75.7035332,31.2475928],[75.7035222,31.2480695],[75.7035222,31.2480891],[75.7035039,31.2484917],[75.7035032,31.2485135],[75.7034876,31.2489915]]]}},{"type":"Feature","properties":{"id":"bldg_422547444","name":"Campus Block 7444","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7037078,31.248518],[75.7038363,31.2485215],[75.7038256,31.2489973],[75.7040321,31.2490042],[75.7040428,31.2484343],[75.703839,31.2484263],[75.7038336,31.248502],[75.7037082,31.2484985],[75.7037078,31.248518]]]}},{"type":"Feature","properties":{"id":"bldg_422547445","name":"Campus Block 7445","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7033761,31.2485112],[75.7035032,31.2485135],[75.7035039,31.2484917],[75.7033768,31.2484905],[75.7033761,31.2485112]]]}},{"type":"Feature","properties":{"id":"bldg_422547446","name":"Campus Block 7446","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7037175,31.2480972],[75.7038475,31.248099],[75.703846,31.248175],[75.7040581,31.248178],[75.7040694,31.2475976],[75.7038655,31.2475947],[75.703848,31.2480787],[75.7037179,31.2480778],[75.7037175,31.2480972]]]}},{"type":"Feature","properties":{"id":"bldg_422547447","name":"Campus Block 7447","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7035222,31.2480891],[75.7033965,31.2480868],[75.7033965,31.2481648],[75.7033307,31.2481648],[75.7033307,31.2481511],[75.7032945,31.2481511],[75.7032905,31.2481637],[75.7032516,31.2481649],[75.7031605,31.2481325],[75.7031927,31.2480663],[75.7031602,31.2480547],[75.703194,31.247985],[75.7031685,31.2479759],[75.7032005,31.2479102],[75.703226,31.2479193],[75.703248,31.2478743],[75.7031835,31.2478512],[75.7032148,31.2477871],[75.7031862,31.2477768],[75.7032186,31.2477106],[75.7031809,31.247697],[75.7032073,31.2476432],[75.7031703,31.24763],[75.703207,31.247555],[75.7033025,31.2475893],[75.7033964,31.2475893],[75.7033967,31.2480684],[75.7035222,31.2480695],[75.7035222,31.2480891]]]}},{"type":"Feature","properties":{"id":"bldg_422548297","name":"Campus Block 8297","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992729,31.249677],[75.6992735,31.2496513],[75.6991815,31.2496495],[75.6991902,31.249324],[75.6993915,31.2493279],[75.6993827,31.2496609],[75.6995328,31.2496639],[75.6995388,31.2494418],[75.6997259,31.2494454],[75.6997199,31.2496682],[75.6998606,31.249671],[75.6998668,31.2494398],[75.7000663,31.2494438],[75.7000603,31.2496665],[75.7001995,31.2496692],[75.7002053,31.2494542],[75.7003981,31.2494579],[75.7003922,31.2496763],[75.7005301,31.249679],[75.7005357,31.2494707],[75.700743,31.2494748],[75.7007373,31.2496883],[75.700871,31.2496909],[75.700877,31.2494688],[75.7010861,31.2494729],[75.7010842,31.2495456],[75.7011602,31.2495471],[75.7011563,31.2496939],[75.701071,31.2496922],[75.7010646,31.2499366],[75.7008596,31.2499326],[75.7008652,31.2497212],[75.7007399,31.2497188],[75.7007343,31.2499339],[75.7005167,31.2499297],[75.7005222,31.2497203],[75.7004063,31.2497181],[75.700401,31.2499221],[75.7001924,31.2499181],[75.7001983,31.2496931],[75.7000607,31.2496905],[75.7000549,31.2499101],[75.6998603,31.2499064],[75.699866,31.2496884],[75.6992729,31.249677]]]}},{"type":"Feature","properties":{"id":"bldg_422548298","name":"Campus Block 8298","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6987111,31.248758],[75.6989083,31.2487763],[75.6989271,31.2486289],[75.6990683,31.2486421],[75.6990498,31.2487882],[75.6992616,31.2488079],[75.6992694,31.2487468],[75.6993906,31.248758],[75.6993817,31.248828],[75.6995355,31.2488423],[75.6995456,31.2487637],[75.6996701,31.2487753],[75.6996607,31.2488493],[75.6998798,31.2488697],[75.6998975,31.2487312],[75.7000077,31.2487414],[75.6999877,31.2488976],[75.7002224,31.2489195],[75.7002652,31.2485849],[75.7000387,31.2485638],[75.7000199,31.248711],[75.6998934,31.2486992],[75.6999113,31.2485595],[75.6997091,31.2485406],[75.6996806,31.248764],[75.6995307,31.2487501],[75.6995585,31.2485316],[75.6994371,31.2485203],[75.6994101,31.2487319],[75.6992641,31.2487183],[75.6992916,31.2485023],[75.6990891,31.2484834],[75.6990722,31.2486161],[75.6989365,31.2486035],[75.6989542,31.2484646],[75.6987508,31.2484457],[75.6987111,31.248758]]]}},{"type":"Feature","properties":{"id":"bldg_422548299","name":"Campus Block 8299","category":"campus","height":34.2,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (9 storeys).","levels":9,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6980648,31.2495469],[75.6980982,31.2493152],[75.6984779,31.2493552],[75.6984662,31.249436],[75.6984999,31.2494396],[75.6984913,31.2494997],[75.6984589,31.2494963],[75.6984473,31.2495767],[75.6984112,31.2495729],[75.6984138,31.2495544],[75.6983274,31.2495453],[75.6983232,31.2495741],[75.6980648,31.2495469]]]}},{"type":"Feature","properties":{"id":"bldg_422548301","name":"Campus Block 8301","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7005726,31.2539496],[75.7005713,31.2539031],[75.7005707,31.2538825],[75.7005644,31.2536612],[75.700564,31.2536452],[75.7005577,31.2534227],[75.7005572,31.2534056],[75.7005552,31.2533351],[75.7007187,31.2533317],[75.7007208,31.2534068],[75.7007212,31.2534205],[75.7007342,31.2538767],[75.7007347,31.253894],[75.7007362,31.2539462],[75.7005726,31.2539496]]]}},{"type":"Feature","properties":{"id":"bldg_422548302","name":"Campus Block 8302","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7008046,31.2539714],[75.7008018,31.2538929],[75.7008012,31.2538756],[75.7007966,31.2537434],[75.7009776,31.2537387],[75.7009822,31.2538721],[75.7009824,31.2538875],[75.7009856,31.2539668],[75.7008046,31.2539714]]]}},{"type":"Feature","properties":{"id":"bldg_422548303","name":"Campus Block 8303","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7008085,31.2534843],[75.7008079,31.2534194],[75.7008078,31.2534068],[75.7008067,31.2532864],[75.7003147,31.2532897],[75.700314,31.2532091],[75.7013828,31.2532019],[75.7013834,31.2532749],[75.7009492,31.2532778],[75.7009503,31.2534033],[75.7009505,31.2534194],[75.7009511,31.2534834],[75.7008085,31.2534843]]]}},{"type":"Feature","properties":{"id":"bldg_422548304","name":"Campus Block 8304","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7010745,31.2539471],[75.7010726,31.2538867],[75.7010725,31.2538713],[75.7010616,31.2534182],[75.7010611,31.2533998],[75.7010592,31.2533212],[75.7012255,31.2533182],[75.7012275,31.2533987],[75.7012279,31.2534148],[75.7012332,31.2536326],[75.7012336,31.2536498],[75.7012389,31.2538665],[75.7012393,31.2538814],[75.7012408,31.2539442],[75.7010745,31.2539471]]]}},{"type":"Feature","properties":{"id":"bldg_422548305","name":"Campus Block 8305","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7003339,31.2539543],[75.70033,31.253826],[75.7004936,31.2538224],[75.7004955,31.2538848],[75.7004961,31.2539043],[75.7004975,31.2539507],[75.7003339,31.2539543]]]}},{"type":"Feature","properties":{"id":"bldg_422548306","name":"Campus Block 8306","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.70033,31.2537261],[75.7003261,31.2535931],[75.7004924,31.2535896],[75.700494,31.2536464],[75.7004945,31.2536613],[75.7004963,31.2537225],[75.70033,31.2537261]]]}},{"type":"Feature","properties":{"id":"bldg_422548307","name":"Campus Block 8307","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7003256,31.2534844],[75.7003222,31.2533468],[75.7004818,31.2533439],[75.7004833,31.2534079],[75.7004837,31.253424],[75.7004851,31.2534816],[75.7003256,31.2534844]]]}},{"type":"Feature","properties":{"id":"bldg_422548308","name":"Campus Block 8308","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7013063,31.2539392],[75.7013043,31.2538802],[75.7013038,31.2538642],[75.7013022,31.2538177],[75.7013921,31.2538155],[75.7013962,31.253937],[75.7013063,31.2539392]]]}},{"type":"Feature","properties":{"id":"bldg_422548309","name":"Campus Block 8309","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012968,31.2537044],[75.7012957,31.2536498],[75.7012953,31.2536314],[75.7012943,31.2535794],[75.7013828,31.2535781],[75.7013853,31.2537031],[75.7012968,31.2537044]]]}},{"type":"Feature","properties":{"id":"bldg_422548310","name":"Campus Block 8310","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012993,31.2534751],[75.7012976,31.2534137],[75.7012972,31.2533953],[75.7012958,31.2533422],[75.701379,31.2533406],[75.7013825,31.2534735],[75.7012993,31.2534751]]]}},{"type":"Feature","properties":{"id":"bldg_422548311","name":"Campus Block 8311","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7004945,31.2536613],[75.7005644,31.2536612],[75.700564,31.2536452],[75.700494,31.2536464],[75.7004945,31.2536613]]]}},{"type":"Feature","properties":{"id":"bldg_422548312","name":"Campus Block 8312","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7004961,31.2539043],[75.7005713,31.2539031],[75.7005707,31.2538825],[75.7004955,31.2538848],[75.7004961,31.2539043]]]}},{"type":"Feature","properties":{"id":"bldg_422548313","name":"Campus Block 8313","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7007347,31.253894],[75.7008018,31.2538929],[75.7008012,31.2538756],[75.7007342,31.2538767],[75.7007347,31.253894]]]}},{"type":"Feature","properties":{"id":"bldg_422548314","name":"Campus Block 8314","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7004837,31.253424],[75.7005577,31.2534227],[75.7005572,31.2534056],[75.7004833,31.2534079],[75.7004837,31.253424]]]}},{"type":"Feature","properties":{"id":"bldg_422548315","name":"Campus Block 8315","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7007212,31.2534205],[75.7008079,31.2534194],[75.7008078,31.2534068],[75.7007208,31.2534068],[75.7007212,31.2534205]]]}},{"type":"Feature","properties":{"id":"bldg_422548316","name":"Campus Block 8316","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7009505,31.2534194],[75.7010616,31.2534182],[75.7010611,31.2533998],[75.7009503,31.2534033],[75.7009505,31.2534194]]]}},{"type":"Feature","properties":{"id":"bldg_422548317","name":"Campus Block 8317","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012279,31.2534148],[75.7012976,31.2534137],[75.7012972,31.2533953],[75.7012275,31.2533987],[75.7012279,31.2534148]]]}},{"type":"Feature","properties":{"id":"bldg_422548318","name":"Campus Block 8318","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7009824,31.2538875],[75.7010726,31.2538867],[75.7010725,31.2538713],[75.7009822,31.2538721],[75.7009824,31.2538875]]]}},{"type":"Feature","properties":{"id":"bldg_422548319","name":"Campus Block 8319","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012393,31.2538814],[75.7013043,31.2538802],[75.7013038,31.2538642],[75.7012389,31.2538665],[75.7012393,31.2538814]]]}},{"type":"Feature","properties":{"id":"bldg_422548320","name":"Campus Block 8320","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012336,31.2536498],[75.7012957,31.2536498],[75.7012953,31.2536314],[75.7012332,31.2536326],[75.7012336,31.2536498]]]}},{"type":"Feature","properties":{"id":"bldg_422548856","name":"Campus Block 8856","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7007827,31.2547755],[75.7007834,31.2546409],[75.7008613,31.2546412],[75.7008615,31.2545888],[75.7010249,31.2545894],[75.7010246,31.2546582],[75.701107,31.2546534],[75.7011069,31.2545872],[75.7012224,31.2545876],[75.7012218,31.2547248],[75.7011411,31.2547245],[75.7011409,31.254777],[75.7009775,31.2547764],[75.7009777,31.2547511],[75.7009118,31.2547509],[75.7009117,31.2547759],[75.7007827,31.2547755]]]}},{"type":"Feature","properties":{"id":"bldg_422548857","name":"Campus Block 8857","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7013348,31.2552345],[75.7014869,31.2552311],[75.7014848,31.2551607],[75.7015634,31.255159],[75.7015591,31.255015],[75.7014876,31.2550165],[75.701486,31.2549642],[75.7015592,31.2549626],[75.7015563,31.2548665],[75.7013788,31.2548704],[75.7013807,31.2549315],[75.7013258,31.2549327],[75.7013348,31.2552345]]]}},{"type":"Feature","properties":{"id":"bldg_422548858","name":"Campus Block 8858","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012218,31.2547248],[75.701252,31.2547321],[75.7012922,31.2547436],[75.7013271,31.2547711],[75.7013593,31.2548032],[75.7013754,31.2548353],[75.7013788,31.2548704],[75.7015563,31.2548665],[75.7015336,31.2548078],[75.7015122,31.2547688],[75.7014934,31.2547413],[75.7014532,31.2546977],[75.7014076,31.2546541],[75.7013485,31.2546243],[75.7012895,31.2546014],[75.7012224,31.2545876],[75.7012218,31.2547248]]]}},{"type":"Feature","properties":{"id":"bldg_422556249","name":"Campus Block 6249","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7027576,31.2522731],[75.7038235,31.2522604],[75.7038267,31.2522265],[75.7038385,31.2521837],[75.70386,31.2521424],[75.703869,31.2521285],[75.7038895,31.2520966],[75.7039163,31.2520576],[75.7039539,31.2520163],[75.7039995,31.2519796],[75.7040477,31.2519498],[75.7040987,31.2519269],[75.7041577,31.2519085],[75.7042052,31.2518984],[75.7042221,31.2518948],[75.7042864,31.2518879],[75.7043284,31.2518874],[75.7043723,31.2518879],[75.7043669,31.2513078],[75.7039485,31.2515371],[75.7040611,31.2517755],[75.7039351,31.2518237],[75.7038305,31.2516013],[75.7033343,31.2518627],[75.7037473,31.2520094],[75.7036856,31.2521103],[75.703235,31.2519521],[75.7027576,31.2522731]]]}},{"type":"Feature","properties":{"id":"bldg_422556250","name":"Campus Block 6250","category":"campus","height":15.2,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (4 storeys).","levels":4,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7040844,31.2522207],[75.7040839,31.2521986],[75.7040906,31.2521734],[75.7041041,31.2521493],[75.7041161,31.2521287],[75.7041376,31.2521034],[75.7041631,31.2520782],[75.7041979,31.2520587],[75.7042382,31.2520381],[75.7042797,31.252022],[75.7043052,31.2520165],[75.7043293,31.2520202],[75.7043284,31.2518874],[75.7042864,31.2518879],[75.7042221,31.2518948],[75.7042052,31.2518984],[75.7041577,31.2519085],[75.7040987,31.2519269],[75.7040477,31.2519498],[75.7039995,31.2519796],[75.7039539,31.2520163],[75.7039163,31.2520576],[75.7038895,31.2520966],[75.703869,31.2521285],[75.70386,31.2521424],[75.7038385,31.2521837],[75.7038267,31.2522265],[75.7040844,31.2522207]]]}},{"type":"Feature","properties":{"id":"bldg_422556253","name":"Campus Block 6253","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7042095,31.2522172],[75.7043269,31.2522133],[75.7043277,31.2521365],[75.704313,31.2521342],[75.7042945,31.2521381],[75.7042677,31.2521507],[75.7042491,31.2521658],[75.7042288,31.2521828],[75.7042167,31.2522],[75.7042095,31.2522172]]]}},{"type":"Feature","properties":{"id":"bldg_422732974","name":"Campus Block 2974","category":"campus","height":0.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (0 storeys).","levels":0,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7081253,31.2584055],[75.7081002,31.2584021],[75.7080724,31.2584045],[75.7080486,31.258415],[75.7080302,31.2584316],[75.7080191,31.2584525],[75.7080167,31.2584753],[75.7080231,31.2584976],[75.7080377,31.2585168],[75.708047,31.2585229],[75.7080589,31.2585308],[75.7080843,31.2585382],[75.708108,31.2585384],[75.7081307,31.2585328],[75.7081505,31.2585218],[75.7081644,31.2585084],[75.7081751,31.2584877],[75.7081777,31.2584676],[75.7081734,31.2584477],[75.7081625,31.2584297],[75.708146,31.2584152],[75.7081253,31.2584055]]]}},{"type":"Feature","properties":{"id":"bldg_422737297","name":"Campus Block 7297","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7008421,31.2511754],[75.7008738,31.2503982],[75.7021138,31.2504216],[75.7020956,31.2511873],[75.7008421,31.2511754]]]}},{"type":"Feature","properties":{"id":"bldg_422738863","name":"Campus Block 8863","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7004581,31.2486813],[75.7005815,31.2486928],[75.70056,31.248851],[75.700434,31.2488372],[75.7004581,31.2486813]]]}},{"type":"Feature","properties":{"id":"bldg_422738883","name":"Campus Block 8883","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7012474,31.2542],[75.7012408,31.2539442],[75.7013962,31.253937],[75.7013949,31.2541977],[75.7012474,31.2542]]]}},{"type":"Feature","properties":{"id":"bldg_422738888","name":"Campus Block 8888","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7002104,31.2547846],[75.7001836,31.2546698],[75.7001041,31.2546834],[75.700131,31.2547982],[75.7002104,31.2547846]]]}},{"type":"Feature","properties":{"id":"bldg_422738889","name":"Campus Block 8889","category":"campus","height":11.4,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (3 storeys).","levels":3,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7004844,31.2551273],[75.7004818,31.2550154],[75.700552,31.2550142],[75.7005546,31.2551261],[75.7004844,31.2551273]]]}},{"type":"Feature","properties":{"id":"bldg_422738890","name":"Campus Block 8890","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.700699,31.2553884],[75.7006971,31.2552957],[75.7007415,31.2552951],[75.7007434,31.2553877],[75.700699,31.2553884]]]}},{"type":"Feature","properties":{"id":"bldg_422738891","name":"Campus Block 8891","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7008236,31.2553857],[75.7008226,31.2553546],[75.7009297,31.2553521],[75.7009308,31.2553831],[75.7008236,31.2553857]]]}},{"type":"Feature","properties":{"id":"bldg_422738892","name":"Campus Block 8892","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7006146,31.2555778],[75.7007444,31.255577],[75.7007439,31.2555107],[75.7006141,31.2555114],[75.7006146,31.2555778]]]}},{"type":"Feature","properties":{"id":"bldg_422738893","name":"Campus Block 8893","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7007337,31.2551275],[75.7008142,31.2551275],[75.7008115,31.2550152],[75.700731,31.2550129],[75.7007337,31.2551275]]]}},{"type":"Feature","properties":{"id":"bldg_422738894","name":"Campus Block 8894","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7007824,31.2556017],[75.7007842,31.2555009],[75.7008351,31.2555016],[75.7008332,31.2556024],[75.7007824,31.2556017]]]}},{"type":"Feature","properties":{"id":"bldg_422738980","name":"Campus Block 8980","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7078386,31.2574986],[75.7078351,31.2573072],[75.7079545,31.2573056],[75.707958,31.257497],[75.7078386,31.2574986]]]}},{"type":"Feature","properties":{"id":"bldg_422820537","name":"Campus Block 0537","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7000367,31.2504646],[75.7005316,31.2504715],[75.7005329,31.2504337],[75.7000354,31.2504222],[75.7000367,31.2504646]]]}},{"type":"Feature","properties":{"id":"bldg_422820538","name":"Campus Block 0538","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7005249,31.2507157],[75.7005329,31.2505117],[75.7005812,31.2505128],[75.7005705,31.250718],[75.7005249,31.2507157]]]}},{"type":"Feature","properties":{"id":"bldg_422820545","name":"Campus Block 0545","category":"campus","height":11.4,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (3 storeys).","levels":3,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7035372,31.2494658],[75.7035395,31.249319],[75.7036237,31.24932],[75.7036247,31.2492565],[75.7041029,31.2492619],[75.7041009,31.2493909],[75.7039406,31.249389],[75.7039393,31.2494704],[75.7035372,31.2494658]]]}},{"type":"Feature","properties":{"id":"bldg_422823418","name":"Campus Block 3418","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.704579,31.2510471],[75.7045786,31.2510146],[75.7046423,31.2510141],[75.7046417,31.2509654],[75.7049921,31.2509622],[75.7049931,31.2510433],[75.7049611,31.2510436],[75.7046983,31.251046],[75.704579,31.2510471]]]}},{"type":"Feature","properties":{"id":"bldg_422823419","name":"Campus Block 3419","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7046983,31.251046],[75.7047011,31.251078],[75.7049613,31.2510757],[75.7049611,31.2510436],[75.7046983,31.251046]]]}},{"type":"Feature","properties":{"id":"bldg_422823420","name":"Campus Block 3420","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7047045,31.2513725],[75.7046982,31.2511953],[75.7049247,31.2511888],[75.7049225,31.2513668],[75.7050117,31.2513645],[75.7050296,31.2515995],[75.704863,31.2516],[75.7048654,31.2516931],[75.7050371,31.2516865],[75.705036,31.2519267],[75.704872,31.2519171],[75.704875,31.2520333],[75.7050402,31.2520368],[75.705042,31.2524825],[75.704974,31.2524875],[75.7048584,31.2524884],[75.7048032,31.2524904],[75.7048029,31.2523748],[75.7047434,31.252376],[75.7047405,31.2522813],[75.7045131,31.25229],[75.7045069,31.2520476],[75.7046982,31.252044],[75.7046952,31.2519277],[75.7045223,31.251931],[75.7045161,31.2516885],[75.704697,31.2516851],[75.7046951,31.2516116],[75.7045059,31.2516152],[75.7044998,31.2513763],[75.7047045,31.2513725]]]}},{"type":"Feature","properties":{"id":"bldg_422823423","name":"Campus Block 3423","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7043734,31.2523824],[75.7045974,31.2528481],[75.7048036,31.2528499],[75.7048034,31.2525364],[75.7048032,31.2524904],[75.7048029,31.2523748],[75.7047434,31.252376],[75.7043734,31.2523824]]]}},{"type":"Feature","properties":{"id":"bldg_422823424","name":"Campus Block 3424","category":"campus","height":22.8,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (6 storeys).","levels":6,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7048578,31.2528855],[75.7048585,31.2527878],[75.7048574,31.2527245],[75.7048577,31.2526356],[75.7048582,31.252535],[75.7048584,31.2524884],[75.7048032,31.2524904],[75.7048034,31.2525364],[75.7048036,31.2528499],[75.7048037,31.252887],[75.7048578,31.2528855]]]}},{"type":"Feature","properties":{"id":"bldg_422823425","name":"Campus Block 3425","category":"campus","height":22.8,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (6 storeys).","levels":6,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7049723,31.252878],[75.7049719,31.252787],[75.7049722,31.2527228],[75.7049759,31.2526334],[75.7049746,31.2525313],[75.704974,31.2524875],[75.705042,31.2524825],[75.7050424,31.2525283],[75.7050359,31.2528761],[75.7049723,31.252878]]]}},{"type":"Feature","properties":{"id":"bldg_422823426","name":"Campus Block 3426","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7048585,31.2527878],[75.7049719,31.252787],[75.7049722,31.2527228],[75.7049759,31.2526334],[75.704974,31.2524875],[75.7048584,31.2524884],[75.7048577,31.2526356],[75.7048574,31.2527245],[75.7048585,31.2527878]]]}},{"type":"Feature","properties":{"id":"bldg_422823427","name":"Campus Block 3427","category":"campus","height":11.4,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (3 storeys).","levels":3,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7048574,31.2527245],[75.7049722,31.2527228],[75.7049759,31.2526334],[75.704974,31.2524875],[75.7048584,31.2524884],[75.7048577,31.2526356],[75.7048574,31.2527245]]]}},{"type":"Feature","properties":{"id":"bldg_422823428","name":"Campus Block 3428","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7048577,31.2526356],[75.7049759,31.2526334],[75.7049746,31.2525313],[75.7048582,31.252535],[75.7048577,31.2526356]]]}},{"type":"Feature","properties":{"id":"bldg_422823430","name":"Campus Block 3430","category":"campus","height":15.2,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (4 storeys).","levels":4,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7053087,31.2513139],[75.7053042,31.2507726],[75.706082,31.2507638],[75.7060931,31.2513074],[75.7053087,31.2513139]]]}},{"type":"Feature","properties":{"id":"bldg_422886524","name":"Campus Block 6524","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.702922,31.2512944],[75.702925,31.2513233],[75.702917,31.2513533],[75.7028979,31.2513795],[75.7028699,31.2513988],[75.702836,31.2514093],[75.7027999,31.2514098],[75.7027657,31.2514001],[75.7027371,31.2513814],[75.7027171,31.2513558],[75.7027081,31.2513263],[75.7027107,31.251296],[75.7027246,31.2512679],[75.7027484,31.2512453],[75.7027794,31.2512304],[75.7028145,31.2512249],[75.7028497,31.2512293],[75.7028813,31.2512432],[75.7029061,31.2512651],[75.7029302,31.2512629],[75.7029043,31.2512353],[75.7028697,31.251216],[75.7028297,31.251207],[75.7027885,31.251209],[75.70275,31.2512219],[75.7027182,31.2512445],[75.7026962,31.2512744],[75.7026862,31.2513087],[75.7026892,31.2513439],[75.7027049,31.2513766],[75.7027347,31.2514055],[75.7027741,31.2514241],[75.7028185,31.2514301],[75.7028627,31.2514229],[75.7029015,31.2514034],[75.7029302,31.2513737],[75.7029454,31.2513375],[75.7029454,31.2512991],[75.702922,31.2512944]]]}},{"type":"Feature","properties":{"id":"bldg_422886525","name":"Campus Block 6525","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7029147,31.2512809],[75.7028383,31.2513011],[75.7028326,31.2512973],[75.7028257,31.2512952],[75.7028185,31.2512951],[75.7028115,31.2512969],[75.7028056,31.2513005],[75.7028013,31.2513055],[75.702799,31.2513114],[75.702799,31.2513176],[75.7028014,31.2513235],[75.7028057,31.2513285],[75.7028122,31.2513322],[75.7028197,31.2513339],[75.7028275,31.2513333],[75.7028346,31.2513305],[75.7028401,31.2513258],[75.7028435,31.2513198],[75.7028444,31.2513132],[75.702922,31.2512944],[75.7029454,31.2512991],[75.7029302,31.2512629],[75.7029061,31.2512651],[75.7029147,31.2512809]]]}},{"type":"Feature","properties":{"id":"bldg_422886528","name":"Campus Block 6528","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7028809,31.251528],[75.7028736,31.2515469],[75.7028595,31.2515628],[75.7028402,31.2515739],[75.7028178,31.2515792],[75.7027945,31.251578],[75.7027729,31.2515705],[75.7027553,31.2515574],[75.7027436,31.2515402],[75.7027396,31.2515232],[75.7027389,31.2515203],[75.7027408,31.2515085],[75.7027422,31.2515001],[75.7027529,31.251482],[75.7027701,31.251468],[75.7027917,31.2514595],[75.7028153,31.2514575],[75.7028362,31.2514618],[75.7028584,31.2514732],[75.7028731,31.2514892],[75.7028808,31.251508],[75.7028998,31.2515155],[75.7028939,31.2514916],[75.7028786,31.2514696],[75.7028557,31.2514532],[75.7028277,31.2514442],[75.7027978,31.2514437],[75.7027693,31.2514517],[75.7027456,31.2514673],[75.7027293,31.2514888],[75.7027223,31.2515136],[75.7027253,31.2515391],[75.702738,31.2515622],[75.7027578,31.2515798],[75.7027831,31.251591],[75.7028113,31.2515948],[75.7028394,31.2515908],[75.7028646,31.2515794],[75.7028843,31.2515618],[75.7028964,31.2515397],[75.7028809,31.251528]]]}},{"type":"Feature","properties":{"id":"bldg_422886529","name":"Campus Block 6529","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7028809,31.251528],[75.7028809,31.2515233],[75.7028808,31.251508],[75.7028998,31.2515155],[75.7028964,31.2515397],[75.7028809,31.251528]]]}},{"type":"Feature","properties":{"id":"bldg_422886530","name":"Campus Block 6530","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7027396,31.2515232],[75.7028809,31.2515233],[75.7028808,31.251508],[75.7027408,31.2515085],[75.7027389,31.2515203],[75.7027396,31.2515232]]]}},{"type":"Feature","properties":{"id":"bldg_422886532","name":"Campus Block 6532","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7029461,31.251376],[75.7029573,31.2513758],[75.702957,31.2514045],[75.7029761,31.2514047],[75.702976,31.2513754],[75.7029874,31.2513752],[75.7029874,31.2514046],[75.7030031,31.2514048],[75.7030025,31.251375],[75.7030159,31.251375],[75.703016,31.2514042],[75.7030332,31.2514044],[75.7030334,31.2513746],[75.7030478,31.2513742],[75.7030476,31.2514036],[75.7030602,31.2514037],[75.7030602,31.251374],[75.7030718,31.2513737],[75.7030717,31.2514136],[75.7029456,31.2514123],[75.7029461,31.251376]]]}},{"type":"Feature","properties":{"id":"bldg_422886533","name":"Campus Block 6533","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7029461,31.251376],[75.7029459,31.2513656],[75.7030716,31.2513633],[75.7030718,31.2513737],[75.7030602,31.251374],[75.7030478,31.2513742],[75.7030334,31.2513746],[75.7030159,31.251375],[75.7030025,31.251375],[75.7029874,31.2513752],[75.702976,31.2513754],[75.7029573,31.2513758],[75.7029461,31.251376]]]}},{"type":"Feature","properties":{"id":"bldg_422886546","name":"Campus Block 6546","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7031876,31.2513873],[75.7031954,31.2513874],[75.7031951,31.2514156],[75.7032295,31.2514158],[75.7032299,31.2513873],[75.7032398,31.2513874],[75.7032394,31.2514155],[75.7032744,31.2514158],[75.7032747,31.2513874],[75.7032839,31.2513874],[75.7032836,31.2514162],[75.7033202,31.2514165],[75.7033206,31.2513876],[75.7033288,31.2513876],[75.7033284,31.2514233],[75.7031872,31.2514221],[75.7031876,31.2513873]]]}},{"type":"Feature","properties":{"id":"bldg_422886547","name":"Campus Block 6547","category":"campus","height":3.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (1 storeys).","levels":1,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7031876,31.2513873],[75.7031954,31.2513874],[75.7032299,31.2513873],[75.7032398,31.2513874],[75.7032747,31.2513874],[75.7032839,31.2513874],[75.7033206,31.2513876],[75.7033288,31.2513876],[75.7033288,31.2513815],[75.7031876,31.2513811],[75.7031876,31.2513873]]]}},{"type":"Feature","properties":{"id":"bldg_425716257","name":"Campus Block 6257","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7055141,31.2568012],[75.7056574,31.2568035],[75.705639,31.25682],[75.7055404,31.2568203],[75.7055141,31.2568012]]]}},{"type":"Feature","properties":{"id":"bldg_425716258","name":"Campus Block 6258","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7055469,31.2570933],[75.7056482,31.2570935],[75.705665,31.2571078],[75.7055279,31.2571091],[75.7055469,31.2570933]]]}},{"type":"Feature","properties":{"id":"bldg_425716259","name":"Campus Block 6259","category":"campus","height":38,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (10 storeys).","levels":10,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7057624,31.2569947],[75.705755,31.2569239],[75.705772,31.2569086],[75.7057829,31.2570106],[75.7057624,31.2569947]]]}},{"type":"Feature","properties":{"id":"bldg_425717556","name":"Campus Block 7556","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.706767,31.2561695],[75.7069808,31.2561679],[75.7069805,31.2562271],[75.706768,31.2562297],[75.706767,31.2561695]]]}},{"type":"Feature","properties":{"id":"bldg_425717558","name":"Campus Block 7558","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7069805,31.2562271],[75.7069805,31.2562441],[75.7070516,31.2562443],[75.7070519,31.2561681],[75.7069808,31.2561679],[75.7069805,31.2562271]]]}},{"type":"Feature","properties":{"id":"bldg_426283204","name":"Campus Block 3204","category":"campus","height":26.6,"min_height":0,"color":"#0077b6","roof_color":"#0096c7","desc":"Multi-level academic & functional campus infrastructure (7 storeys).","levels":7,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7068782,31.2579487],[75.7068812,31.2581345],[75.7068819,31.2582072],[75.7069662,31.2582066],[75.7069655,31.2581316],[75.7069625,31.2579477],[75.7068782,31.2579487]]]}},{"type":"Feature","properties":{"id":"bldg_426284154","name":"Campus Block 4154","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7048032,31.2524904],[75.7048034,31.2525364],[75.7048582,31.252535],[75.7049746,31.2525313],[75.7050424,31.2525283],[75.705042,31.2524825],[75.704974,31.2524875],[75.7048584,31.2524884],[75.7048032,31.2524904]]]}},{"type":"Feature","properties":{"id":"bldg_427330237","name":"Campus Block 0237","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7077279,31.2579414],[75.7077158,31.2579632],[75.7077051,31.2579907],[75.707697,31.2580239],[75.707693,31.2580595],[75.7076917,31.2581156],[75.7076925,31.2581586],[75.7078023,31.2581537],[75.7080672,31.2583736],[75.70809,31.2583965],[75.7081262,31.2583965],[75.708145,31.2584103],[75.7082804,31.2585261],[75.7083488,31.2584676],[75.7077279,31.2579414]]]}},{"type":"Feature","properties":{"id":"bldg_427330238","name":"Campus Block 0238","category":"campus","height":0.8,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (0 storeys).","levels":0,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7077033,31.2582915],[75.7077242,31.2583263],[75.7077618,31.2583756],[75.7078074,31.2584203],[75.7078583,31.258465],[75.707912,31.258496],[75.7080032,31.2585224],[75.708047,31.2585229],[75.7080377,31.2585168],[75.7080231,31.2584976],[75.7080167,31.2584753],[75.7080191,31.2584525],[75.7080302,31.2584316],[75.7080486,31.258415],[75.7080724,31.2584045],[75.7078067,31.2581821],[75.707813,31.2582866],[75.7077859,31.2582878],[75.7077033,31.2582915]]]}},{"type":"Feature","properties":{"id":"bldg_1299137613","name":"Elem apartment","category":"hostels","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6988809,31.2520765],[75.6987813,31.2520693],[75.6987942,31.2519827],[75.6988898,31.2519921],[75.6988871,31.2520316],[75.6988809,31.2520765]]]}},{"type":"Feature","properties":{"id":"bldg_1299447331","name":"prime apartment 2","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6985454,31.2522],[75.6986801,31.2521965],[75.6986814,31.2521458],[75.6985482,31.2521472],[75.6985454,31.2522]]]}},{"type":"Feature","properties":{"id":"bldg_1299447332","name":"Diya apartment","category":"hostels","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6985348,31.2523322],[75.6986719,31.2523411],[75.6986769,31.2522054],[75.6985498,31.2522097],[75.6985348,31.2523322]]]}},{"type":"Feature","properties":{"id":"bldg_1299813019","name":"desi & delicious","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.698439,31.2549981],[75.6986687,31.254875],[75.6985067,31.2546567],[75.698439,31.2549981]]]}},{"type":"Feature","properties":{"id":"bldg_1300687852","name":"Dimple Apartment","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6989885,31.2522644],[75.6990435,31.2522713],[75.6990658,31.2521894],[75.699004,31.2521805],[75.6989885,31.2522644]]]}},{"type":"Feature","properties":{"id":"bldg_1300687853","name":"Avjot PG","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6988729,31.2522614],[75.698937,31.2522653],[75.6989555,31.252164],[75.6988833,31.2521619],[75.6988729,31.2522614]]]}},{"type":"Feature","properties":{"id":"bldg_1300687854","name":"Campus Block 7854","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6987567,31.2523072],[75.6988285,31.2523121],[75.6988422,31.2522503],[75.6987758,31.2522444],[75.6987743,31.2522277],[75.698745,31.2522262],[75.6987395,31.2522746],[75.6987588,31.2522775],[75.6987567,31.2523072]]]}},{"type":"Feature","properties":{"id":"bldg_1300687855","name":"Campus Block 7855","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6985536,31.252103],[75.6986963,31.2521023],[75.6986974,31.2520496],[75.6985565,31.2520482],[75.6985536,31.252103]]]}},{"type":"Feature","properties":{"id":"bldg_1300687856","name":"Campus Block 7856","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6988809,31.2520765],[75.6989457,31.2520799],[75.6989545,31.2519985],[75.6988898,31.2519921],[75.6988809,31.2520765]]]}},{"type":"Feature","properties":{"id":"bldg_1300687857","name":"Campus Block 7857","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6990008,31.2520972],[75.6990039,31.2520216],[75.6991207,31.252031],[75.6991147,31.2521047],[75.6990008,31.2520972]]]}},{"type":"Feature","properties":{"id":"bldg_1300687858","name":"Campus Block 7858","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991189,31.2522445],[75.6991249,31.2521805],[75.6991834,31.2521835],[75.6991787,31.252248],[75.6991189,31.2522445]]]}},{"type":"Feature","properties":{"id":"bldg_1300687859","name":"Campus Block 7859","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991787,31.252248],[75.6992297,31.252253],[75.6992378,31.2521891],[75.6991834,31.2521835],[75.6991787,31.252248]]]}},{"type":"Feature","properties":{"id":"bldg_1300687860","name":"karan pg 1","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6992297,31.252253],[75.6992828,31.252258],[75.6992918,31.2521954],[75.6992378,31.2521891],[75.6992297,31.252253]]]}},{"type":"Feature","properties":{"id":"bldg_1300687861","name":"the grand castle","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6995756,31.2521497],[75.6996541,31.2521551],[75.6996738,31.25206],[75.6995893,31.2520509],[75.6995756,31.2521497]]]}},{"type":"Feature","properties":{"id":"bldg_1300687862","name":"pheonix apartment","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6994448,31.2521356],[75.6995756,31.2521497],[75.6995893,31.2520509],[75.6994576,31.2520385],[75.6994448,31.2521356]]]}},{"type":"Feature","properties":{"id":"bldg_1300687863","name":"Campus Block 7863","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991147,31.2521047],[75.6991834,31.2521071],[75.6991937,31.252037],[75.6991207,31.252031],[75.6991147,31.2521047]]]}},{"type":"Feature","properties":{"id":"bldg_1300687864","name":"victoria apartment","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6991834,31.2521071],[75.6992297,31.2521083],[75.6992384,31.2520407],[75.6991937,31.252037],[75.6991834,31.2521071]]]}},{"type":"Feature","properties":{"id":"bldg_1300687865","name":"Sanamdeep Apartments","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6992928,31.2521146],[75.6993014,31.2520486],[75.6993512,31.2520577],[75.6993402,31.2521211],[75.6992928,31.2521146]]]}},{"type":"Feature","properties":{"id":"bldg_1300687866","name":"Sanamdeep apartment","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6992297,31.2521083],[75.6992928,31.2521146],[75.6993014,31.2520486],[75.6992384,31.2520407],[75.6992297,31.2521083]]]}},{"type":"Feature","properties":{"id":"bldg_1300687868","name":"Campus Block 7868","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6996052,31.2524255],[75.6996256,31.2523358],[75.6997111,31.2523464],[75.699694,31.2524399],[75.6996052,31.2524255]]]}},{"type":"Feature","properties":{"id":"bldg_1300687869","name":"Campus Block 7869","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6995187,31.2524137],[75.6995385,31.2523251],[75.6996256,31.2523358],[75.6996052,31.2524255],[75.6995187,31.2524137]]]}},{"type":"Feature","properties":{"id":"bldg_1300687870","name":"Campus Block 7870","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6994335,31.2524024],[75.6994487,31.2523136],[75.6995385,31.2523251],[75.6995187,31.2524137],[75.6994335,31.2524024]]]}},{"type":"Feature","properties":{"id":"bldg_1300687871","name":"karan pg 2","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6992828,31.252258],[75.6992431,31.2522812],[75.699253,31.2522208],[75.6992918,31.2521954],[75.6992828,31.252258]]]}},{"type":"Feature","properties":{"id":"bldg_1300687872","name":"Campus Block 7872","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992431,31.2522812],[75.6994209,31.252261],[75.6994342,31.2522034],[75.699253,31.2522208],[75.6992431,31.2522812]]]}},{"type":"Feature","properties":{"id":"bldg_1300687873","name":"Campus Block 7873","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991535,31.2523775],[75.6991605,31.252281],[75.6992262,31.2522874],[75.6992196,31.2523822],[75.6991535,31.2523775]]]}},{"type":"Feature","properties":{"id":"bldg_1300687874","name":"Campus Block 7874","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992662,31.2523944],[75.6992824,31.2522905],[75.6993464,31.2522945],[75.6993284,31.2524002],[75.6992662,31.2523944]]]}},{"type":"Feature","properties":{"id":"bldg_1300687875","name":"Campus Block 7875","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6984099,31.2524454],[75.6986701,31.2524669],[75.698681,31.2523503],[75.698533,31.2523394],[75.6985315,31.2523858],[75.698416,31.2523794],[75.6984099,31.2524454]]]}},{"type":"Feature","properties":{"id":"bldg_1300687876","name":"Campus Block 7876","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6987182,31.2527932],[75.6987407,31.2527061],[75.6988725,31.2527156],[75.6988513,31.2528162],[75.6987182,31.2527932]]]}},{"type":"Feature","properties":{"id":"bldg_1300687877","name":"Campus Block 7877","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991588,31.2525498],[75.6991653,31.2524775],[75.6992852,31.2524824],[75.6992711,31.2525569],[75.6991588,31.2525498]]]}},{"type":"Feature","properties":{"id":"bldg_1300687879","name":"Campus Block 7879","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979692,31.2517666],[75.6981561,31.2517794],[75.6981474,31.2518368],[75.6981423,31.2518703],[75.69792,31.2518698],[75.6979175,31.2518072],[75.6979613,31.2518034],[75.6979692,31.2517666]]]}},{"type":"Feature","properties":{"id":"bldg_1300687880","name":"Campus Block 7880","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.69814,31.251894],[75.69817,31.2517996],[75.6982328,31.251819],[75.6982036,31.2519009],[75.69814,31.251894]]]}},{"type":"Feature","properties":{"id":"bldg_1300687925","name":"Ssj Complex","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6989095,31.2536754],[75.6989233,31.253584],[75.6992055,31.2536281],[75.6992022,31.2537281],[75.6989095,31.2536754]]]}},{"type":"Feature","properties":{"id":"bldg_1300687926","name":"Dogra Dhaba & Campus Food Point","category":"unimall","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6997411,31.2541693],[75.699676,31.2540604],[75.6997381,31.2540309],[75.6998023,31.2541376],[75.6997411,31.2541693]]]}},{"type":"Feature","properties":{"id":"bldg_1300687927","name":"Lally apartment","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6993428,31.2539603],[75.6994258,31.2539163],[75.6993848,31.2538596],[75.6993056,31.2539091],[75.6993428,31.2539603]]]}},{"type":"Feature","properties":{"id":"bldg_1300687928","name":"Campus Block 7928","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6993707,31.2539962],[75.6994535,31.2539535],[75.6994872,31.254],[75.6994082,31.2540467],[75.6993707,31.2539962]]]}},{"type":"Feature","properties":{"id":"bldg_1300687929","name":"Campus Block 7929","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992965,31.2540845],[75.6992315,31.2539994],[75.6992811,31.2539822],[75.6993031,31.2540138],[75.6993392,31.2540658],[75.6992965,31.2540845]]]}},{"type":"Feature","properties":{"id":"bldg_1300687930","name":"Campus Block 7930","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6993392,31.2540658],[75.6993031,31.2540138],[75.6993589,31.2539892],[75.6993946,31.2540393],[75.6993392,31.2540658]]]}},{"type":"Feature","properties":{"id":"bldg_1300687931","name":"Ten2Nine","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6995193,31.2544315],[75.699433,31.2543019],[75.6994827,31.2542739],[75.6995691,31.2544085],[75.6995193,31.2544315]]]}},{"type":"Feature","properties":{"id":"bldg_1300687932","name":"Campus Block 7932","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992039,31.2545847],[75.6991185,31.2544569],[75.6992031,31.2544109],[75.6992908,31.2545446],[75.6992039,31.2545847]]]}},{"type":"Feature","properties":{"id":"bldg_1300700284","name":"Campus Block 0284","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979823,31.2531514],[75.6981034,31.2531712],[75.6981114,31.2531247],[75.6979907,31.2531095],[75.6979823,31.2531514]]]}},{"type":"Feature","properties":{"id":"bldg_1300700285","name":"Campus Block 0285","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979676,31.2533208],[75.6980889,31.2533315],[75.6980965,31.253253],[75.6979759,31.2532422],[75.6979676,31.2533208]]]}},{"type":"Feature","properties":{"id":"bldg_1300700286","name":"Campus Block 0286","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6980753,31.2533501],[75.6980724,31.2534091],[75.69794,31.2534047],[75.6979467,31.2533429],[75.6980753,31.2533501]]]}},{"type":"Feature","properties":{"id":"bldg_1300700296","name":"Campus Block 0296","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6992269,31.2539863],[75.6992041,31.2539593],[75.6991723,31.253974],[75.699126,31.2539086],[75.6992332,31.2538491],[75.6992954,31.2539443],[75.6992269,31.2539863]]]}},{"type":"Feature","properties":{"id":"bldg_1300700297","name":"Campus Block 0297","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6990495,31.2540343],[75.6990034,31.2539737],[75.6990762,31.2539294],[75.6991315,31.2540004],[75.6991218,31.2540077],[75.699142,31.254037],[75.699104,31.25406],[75.6990678,31.2540202],[75.6990495,31.2540343]]]}},{"type":"Feature","properties":{"id":"bldg_1300700298","name":"Campus Block 0298","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.699159,31.2541701],[75.6990953,31.2540678],[75.6991397,31.2540489],[75.6992065,31.2541488],[75.699159,31.2541701]]]}},{"type":"Feature","properties":{"id":"bldg_1300700299","name":"Campus Block 0299","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6990649,31.2542072],[75.698975,31.2540727],[75.699023,31.2540486],[75.699113,31.2541815],[75.6990649,31.2542072]]]}},{"type":"Feature","properties":{"id":"bldg_1300700300","name":"Campus Block 0300","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6988891,31.2542904],[75.6988056,31.2541571],[75.6988852,31.254115],[75.6989794,31.2542486],[75.6988891,31.2542904]]]}},{"type":"Feature","properties":{"id":"bldg_1300700301","name":"Simar Land Promoters","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6995935,31.2543066],[75.6995517,31.2542344],[75.6996233,31.254208],[75.6996685,31.2542768],[75.6995935,31.2543066]]]}},{"type":"Feature","properties":{"id":"bldg_1300700302","name":"Kulhad Masti","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6995265,31.2543231],[75.6994938,31.2542696],[75.6995409,31.2542463],[75.6995805,31.2543039],[75.6995265,31.2543231]]]}},{"type":"Feature","properties":{"id":"bldg_1300700303","name":"Ghost Shooter","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6994396,31.2544836],[75.6993359,31.25434],[75.6993913,31.2543134],[75.699492,31.2544487],[75.6994396,31.2544836]]]}},{"type":"Feature","properties":{"id":"bldg_1300700304","name":"Campus Block 0304","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6993341,31.2545245],[75.6992474,31.2544003],[75.699325,31.2543649],[75.6994094,31.254493],[75.6993341,31.2545245]]]}},{"type":"Feature","properties":{"id":"bldg_1300700305","name":"Campus Block 0305","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6991113,31.2546404],[75.6990085,31.2545046],[75.6990735,31.254475],[75.6991703,31.2546101],[75.6991113,31.2546404]]]}},{"type":"Feature","properties":{"id":"bldg_1300700306","name":"Majlis Restaurant","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":true},"geometry":{"type":"Polygon","coordinates":[[[75.6990008,31.2546888],[75.6989025,31.2545699],[75.6989708,31.2545328],[75.6990715,31.2546522],[75.6990008,31.2546888]]]}},{"type":"Feature","properties":{"id":"bldg_1300700307","name":"Campus Block 0307","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6980425,31.2547252],[75.6980595,31.2545845],[75.6981526,31.2545934],[75.6981335,31.2547315],[75.6980425,31.2547252]]]}},{"type":"Feature","properties":{"id":"bldg_1300700308","name":"Campus Block 0308","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.698155,31.2547298],[75.6981705,31.2545991],[75.6982603,31.2546032],[75.6982595,31.2546113],[75.6982412,31.2547381],[75.698155,31.2547298]]]}},{"type":"Feature","properties":{"id":"bldg_1300700309","name":"Campus Block 0309","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6982666,31.2546098],[75.6983599,31.2546163],[75.698304,31.2549371],[75.6982089,31.2549353],[75.6982666,31.2546098]]]}},{"type":"Feature","properties":{"id":"bldg_1300700310","name":"Campus Block 0310","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6980304,31.2548147],[75.6982213,31.2548217],[75.6982322,31.2547443],[75.6980388,31.254736],[75.6980304,31.2548147]]]}},{"type":"Feature","properties":{"id":"bldg_1300700311","name":"Campus Block 0311","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6985973,31.2540864],[75.6986125,31.2539726],[75.698709,31.2539771],[75.6986962,31.2540979],[75.6985973,31.2540864]]]}},{"type":"Feature","properties":{"id":"bldg_1300700312","name":"Campus Block 0312","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6985593,31.2540163],[75.6985638,31.2539755],[75.698597,31.2539781],[75.69859,31.254011],[75.6985593,31.2540163]]]}},{"type":"Feature","properties":{"id":"bldg_1300700313","name":"Campus Block 0313","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6986244,31.2542579],[75.6987231,31.2541956],[75.6988281,31.2543297],[75.6987194,31.2543824],[75.6986244,31.2542579]]]}},{"type":"Feature","properties":{"id":"bldg_1300700314","name":"Campus Block 0314","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6986188,31.2544098],[75.6985552,31.2543055],[75.6985973,31.2542788],[75.6986675,31.2543904],[75.6986188,31.2544098]]]}},{"type":"Feature","properties":{"id":"bldg_1300700315","name":"Campus Block 0315","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6982403,31.2543785],[75.6982511,31.2542783],[75.6983682,31.2542909],[75.698351,31.2543826],[75.6982403,31.2543785]]]}},{"type":"Feature","properties":{"id":"bldg_1300700316","name":"Campus Block 0316","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6982647,31.254173],[75.6982828,31.2541027],[75.6983909,31.2541153],[75.6983747,31.2541936],[75.6982647,31.254173]]]}},{"type":"Feature","properties":{"id":"bldg_1300700317","name":"Campus Block 0317","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6981705,31.2539614],[75.6980701,31.2539565],[75.6979976,31.2539529],[75.698005,31.2538842],[75.6981815,31.2538933],[75.6981705,31.2539614]]]}},{"type":"Feature","properties":{"id":"bldg_1300700318","name":"Campus Block 0318","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6980651,31.2540521],[75.6980701,31.2539565],[75.6981705,31.2539614],[75.6981568,31.2540605],[75.6980651,31.2540521]]]}},{"type":"Feature","properties":{"id":"bldg_1300700324","name":"Campus Block 0324","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979721,31.2544499],[75.6979948,31.2543255],[75.6980923,31.2543374],[75.6980689,31.2544557],[75.6979721,31.2544499]]]}},{"type":"Feature","properties":{"id":"bldg_1300700325","name":"Campus Block 0325","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.69772,31.2539919],[75.6980369,31.254027],[75.6980464,31.253975],[75.6977299,31.253927],[75.69772,31.2539919]]]}},{"type":"Feature","properties":{"id":"bldg_1300762561","name":"Campus Block 2561","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979429,31.2481625],[75.6979506,31.2480885],[75.6981924,31.2481119],[75.6981805,31.2481889],[75.6979429,31.2481625]]]}},{"type":"Feature","properties":{"id":"bldg_1300762562","name":"Campus Block 2562","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.698213,31.2481086],[75.6982237,31.2480197],[75.698401,31.248029],[75.6983989,31.2481306],[75.698213,31.2481086]]]}},{"type":"Feature","properties":{"id":"bldg_1300762564","name":"Campus Block 2564","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6979205,31.2483963],[75.6979243,31.2482679],[75.6981613,31.2482977],[75.6981277,31.2484135],[75.6979205,31.2483963]]]}},{"type":"Feature","properties":{"id":"bldg_1303020182","name":"Campus Block 0182","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.6982307,31.2537859],[75.698304,31.2537821],[75.6983129,31.2536787],[75.6982449,31.2536791],[75.6982307,31.2537859]]]}},{"type":"Feature","properties":{"id":"bldg_1550425052","name":"Campus Block 5052","category":"campus","height":11.4,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (3 storeys).","levels":3,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7020872,31.2521834],[75.7019778,31.25218],[75.7019705,31.2523707],[75.7016344,31.2523698],[75.7016319,31.2523273],[75.7018807,31.2523239],[75.7018925,31.252133],[75.7015615,31.252129],[75.7015565,31.2524522],[75.7020784,31.2524603],[75.7020872,31.2521834]]]}},{"type":"Feature","properties":{"id":"bldg_1566888543","name":"Campus Block 8543","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7040844,31.2522207],[75.7042095,31.2522172],[75.7042167,31.2522],[75.7042288,31.2521828],[75.7042491,31.2521658],[75.7042677,31.2521507],[75.7042945,31.2521381],[75.704313,31.2521342],[75.7043277,31.2521365],[75.7043293,31.2520202],[75.7043052,31.2520165],[75.7042797,31.252022],[75.7042382,31.2520381],[75.7041979,31.2520587],[75.7041631,31.2520782],[75.7041376,31.2521034],[75.7041161,31.2521287],[75.7041041,31.2521493],[75.7040906,31.2521734],[75.7040839,31.2521986],[75.7040844,31.2522207]]]}},{"type":"Feature","properties":{"id":"bldg_1566888545","name":"Campus Block 8545","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7029276,31.2515199],[75.7030689,31.25152],[75.7030688,31.2515047],[75.7029288,31.2515052],[75.7029269,31.251517],[75.7029276,31.2515199]]]}},{"type":"Feature","properties":{"id":"bldg_1566888547","name":"Campus Block 8547","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7030689,31.2515247],[75.7030616,31.2515436],[75.7030475,31.2515595],[75.7030282,31.2515706],[75.7030058,31.2515759],[75.7029825,31.2515747],[75.7029609,31.2515672],[75.7029433,31.2515541],[75.7029316,31.2515369],[75.7029276,31.2515199],[75.7029269,31.251517],[75.7029288,31.2515052],[75.7029302,31.2514968],[75.7029409,31.2514787],[75.7029581,31.2514647],[75.7029797,31.2514562],[75.7030033,31.2514542],[75.7030242,31.2514585],[75.7030464,31.2514699],[75.7030611,31.2514859],[75.7030688,31.2515047],[75.7030878,31.2515122],[75.7030819,31.2514883],[75.7030666,31.2514663],[75.7030437,31.2514499],[75.7030157,31.2514409],[75.7029858,31.2514404],[75.7029573,31.2514484],[75.7029336,31.251464],[75.7029173,31.2514855],[75.7029103,31.2515103],[75.7029133,31.2515358],[75.702926,31.2515589],[75.7029458,31.2515765],[75.7029711,31.2515877],[75.7029993,31.2515915],[75.7030274,31.2515875],[75.7030526,31.2515761],[75.7030723,31.2515585],[75.7030844,31.2515364],[75.7030689,31.2515247]]]}},{"type":"Feature","properties":{"id":"bldg_1566888548","name":"Campus Block 8548","category":"campus","height":19,"min_height":0,"color":"#0096c7","roof_color":"#00b4d8","desc":"Multi-level academic & functional campus infrastructure (5 storeys).","levels":5,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7030689,31.2515247],[75.7030689,31.25152],[75.7030688,31.2515047],[75.7030878,31.2515122],[75.7030844,31.2515364],[75.7030689,31.2515247]]]}},{"type":"Feature","properties":{"id":"bldg_1566888553","name":"Campus Block 8553","category":"campus","height":7.6,"min_height":0,"color":"#00b4d8","roof_color":"#48cae4","desc":"Multi-level academic & functional campus infrastructure (2 storeys).","levels":2,"is_landmark":false},"geometry":{"type":"Polygon","coordinates":[[[75.7029503,31.2513591],[75.7029491,31.2511963],[75.7031572,31.251201],[75.7031578,31.2513559],[75.7029503,31.2513591]]]}}]};
+
+const LANDMARKS = [
+    {
+      id: "library",
+      name: "📚 Central University Library",
+      fullName: "Central University Library & Research Archives",
+      cat: "academic",
+      coords: [75.7032932, 31.2526252],
+      levels: 6,
+      height: 25.2,
+      desc: "Central University Library with 400,000+ volumes, digital research archives, and 24/7 study rooms."
+    },
+    {
+      id: "block34",
+      name: "💻 Block 34 • CSE & AI",
+      fullName: "Block 34 - Computer Science & Engineering",
+      cat: "tech",
+      coords: [75.7033124, 31.2552684],
+      levels: 7,
+      height: 29.4,
+      desc: "School of Computer Science & Engineering, AI/ML Innovation Labs, and Apple Mac suites."
+    },
+    {
+      id: "bldg_422437899",
+      name: "🏛️ Block 31 • Administration",
+      fullName: "Block 31 - Chancellor Secretariat & Administration",
+      cat: "academic",
+      coords: [75.7039336, 31.2560662],
+      levels: 8,
+      height: 34,
+      desc: "Executive Administration, Chancellor Secretariat, and Student Registrar."
+    },
+    {
+      id: "block57_58",
+      name: "⚙️ Blocks 57/58 • Polytechnic",
+      fullName: "Blocks 57 & 58 - Polytechnic & Student Project Labs",
+      cat: "tech",
+      coords: [75.7040369, 31.2552337],
+      levels: 5,
+      height: 21,
+      desc: "Polytechnic workshops, rapid prototyping, and robotics project bays."
+    },
+    {
+      id: "block18",
+      name: "🎓 Block 18 • Education",
+      fullName: "Block 18 - School of Education & Humanities",
+      cat: "academic",
+      coords: [75.7047046, 31.2551026],
+      levels: 5,
+      height: 21,
+      desc: "School of Education & Humanities, smart seminar halls, and faculty rooms."
+    },
+    {
+      id: "unimall",
+      name: "🛍️ UniMall & Block 15",
+      fullName: "UniMall & Block 15 (Hotel Management)",
+      cat: "unimall",
+      coords: [75.7049979, 31.2557162],
+      levels: 6,
+      height: 25.2,
+      desc: "Multi-storey commercial shopping complex, SAARSH Salon, food outlets, and ATMs."
+    },
+    {
+      id: "block47",
+      name: "⚽ Block 47 • Sports Stadium",
+      fullName: "Block 47 - Indoor Sports Stadium Complex",
+      cat: "sports",
+      coords: [75.7056536, 31.2565249],
+      levels: 4,
+      height: 16.8,
+      desc: "Indoor Olympic-standard wooden basketball courts, badminton arena, and gym."
+    },
+    {
+      id: "blocks13_14",
+      name: "📊 Blocks 13/14 • Mittal Business",
+      fullName: "Blocks 13 & 14 - Mittal School of Business & DSW",
+      cat: "academic",
+      coords: [75.705696, 31.2542496],
+      levels: 6,
+      height: 25.2,
+      desc: "Mittal School of Business and Division of Student Welfare (DSW)."
+    },
+    {
+      id: "gh_complex",
+      name: "🏢 GH Complex • Girls Hostels",
+      fullName: "Girls Hostel Complex (GH 9-12, 21)",
+      cat: "hostels",
+      coords: [75.7049121, 31.2530686],
+      levels: 6,
+      height: 25.2,
+      desc: "Secure multi-tower girls residential blocks with biometric entry turnstiles."
+    },
+    {
+      id: "bldg_354755644",
+      name: "🔬 Lovely Institute of Tech",
+      fullName: "Lovely Institute of Technology",
+      cat: "tech",
+      coords: [75.7068854, 31.2578922],
+      levels: 7,
+      height: 26.6,
+      desc: "Engineering and technology laboratories and research workshops."
+    },
+    {
+      id: "bldg_1299137613",
+      name: "🏬 Elem Apartment",
+      fullName: "Elem Apartment • Student Residences",
+      cat: "hostels",
+      coords: [75.6988524, 31.2520381],
+      levels: 6,
+      height: 22,
+      desc: "Modern student apartment tower with dining and fitness facilities."
+    },
+    {
+      id: "bldg_1299447332",
+      name: "🏬 Diya Apartment",
+      fullName: "Diya Apartment • Student Residences",
+      cat: "hostels",
+      coords: [75.6985936, 31.2522841],
+      levels: 6,
+      height: 22,
+      desc: "High-rise student apartment towers near Law Gate."
+    }
+  ];
+
+    // Explicit state variables
+    let map = null;
+    let beaconMarkers = [];
+    let currentPopup = null;
+    let selectedBuilding = null;
+    let currentPitch = 56;
+
+    window.addEventListener('DOMContentLoaded', initMap);
+
+    function initMap() {
+      map = new maplibregl.Map({
+        container: 'map',
+        center: LPU_CENTER,
+        zoom: 16.4,
+        pitch: 56,
+        bearing: -22, // Perspective view matching lpu.jpeg
+        maxPitch: 75,
+        antialias: true,
+        style: {
+          version: 8,
+          sources: {
+            'satellite': {
+              type: 'raster',
+              tiles: [
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+              ],
+              tileSize: 256,
+              attribution: 'Esri World Imagery'
+            },
+            'campus-buildings': {
+              type: 'geojson',
+              data: CAMPUS_GEOJSON
+            }
+          },
+          layers: [
+            {
+              id: 'satellite-basemap',
+              type: 'raster',
+              source: 'satellite',
+              minzoom: 0,
+              maxzoom: 22
+            },
+            // Ground-truth 3D building extrusions from real OSM surveyed architecture
+            {
+              id: '3d-buildings-extrusion',
+              type: 'fill-extrusion',
+              source: 'campus-buildings',
+              paint: {
+                'fill-extrusion-color': ['get', 'color'],
+                'fill-extrusion-height': ['get', 'height'],
+                'fill-extrusion-base': ['get', 'min_height'],
+                'fill-extrusion-opacity': 0.88
+              }
+            }
+          ]
+        }
+      });
+
+      map.on('load', () => {
+        // Place high-visibility 3D beacons
+        renderSubtleBeacons();
+
+        // RELIABLE 3D BUILDING CLICK HANDLER (QueryRenderedFeatures across extruded geometry)
+        map.on('click', (e) => {
+          const buffer = 12;
+          const bbox = [
+            [e.point.x - buffer, e.point.y - buffer],
+            [e.point.x + buffer, e.point.y + buffer]
+          ];
+          const features = map.queryRenderedFeatures(bbox, {
+            layers: ['3d-buildings-extrusion']
+          });
+
+          if (features && features.length > 0) {
+            const props = features[0].properties;
+            const coords = [e.lngLat.lng, e.lngLat.lat];
+            showBuildingPopup(props, coords);
+            showBuildingDetails(props, coords);
+            map.flyTo({ center: coords, zoom: 17.5, pitch: 60, duration: 800 });
+          } else {
+            if (currentPopup) {
+              currentPopup.remove();
+              currentPopup = null;
+            }
+          }
+        });
+
+        // Dynamic pointer cursor over 3D buildings
+        map.on('mousemove', (e) => {
+          const buffer = 10;
+          const bbox = [
+            [e.point.x - buffer, e.point.y - buffer],
+            [e.point.x + buffer, e.point.y + buffer]
+          ];
+          const features = map.queryRenderedFeatures(bbox, {
+            layers: ['3d-buildings-extrusion']
+          });
+          map.getCanvas().style.cursor = (features && features.length > 0) ? 'pointer' : '';
+        });
+      });
+    }
+
+    // High-visibility 3D glowing beacons with interactive inspection
+    function renderSubtleBeacons() {
+      beaconMarkers.forEach(m => m.remove());
+      beaconMarkers = [];
+
+      LANDMARKS.forEach(lm => {
+        const pin = document.createElement('div');
+        pin.className = 'beacon-pin';
+        pin.dataset.cat = lm.cat;
+        pin.title = `${lm.fullName || lm.name} (${lm.coords[1].toFixed(5)}° N, ${lm.coords[0].toFixed(5)}° E)`;
+        
+        pin.innerHTML = `
+          <div class="beacon-tag">
+            <span class="beacon-name">${lm.name}</span>
+          </div>
+          <div class="beacon-core-wrap">
+            <div class="beacon-pulse"></div>
+            <div class="beacon-core"><span>${lm.name.slice(0, 2)}</span></div>
+          </div>
+          <div class="beacon-stem"></div>
+        `;
+
+        // Click on pin opens the manageable card & inspection drawer
+        pin.addEventListener('click', (e) => {
+          e.stopPropagation();
+          map.flyTo({
+            center: lm.coords,
+            zoom: 17.5,
+            pitch: 58,
+            duration: 900
+          });
+          const buildingProps = {
+            id: lm.id,
+            name: lm.fullName || lm.name,
+            category: lm.cat,
+            desc: lm.desc,
+            height: lm.height || 30,
+            levels: lm.levels || 6
+          };
+          showBuildingPopup(buildingProps, lm.coords);
+          showBuildingDetails(buildingProps, lm.coords);
+        });
+
+        const marker = new maplibregl.Marker({ element: pin, anchor: 'bottom' })
+          .setLngLat(lm.coords)
+          .addTo(map);
+
+        beaconMarkers.push(marker);
+      });
+    }
+
+    // Shows a clean, 270px-wide card ONLY when clicked
+    function showBuildingPopup(props, coords) {
+      if (currentPopup) {
+        currentPopup.remove();
+      }
+
+      const lat = coords ? coords[1].toFixed(6) : '31.253800';
+      const lng = coords ? coords[0].toFixed(6) : '75.703800';
+      const bName = props.name || 'Campus Building';
+      const bCat = (props.category || 'ACADEMIC').toUpperCase();
+      const bDesc = props.desc || 'Architectural digital twin structure.';
+      const bHeight = props.height ? props.height : 25;
+      const bLevels = props.levels ? props.levels : Math.round(bHeight / 4);
+
+      const html = `
+        <div class="popup-card-content">
+          <div class="popup-cat-badge">${bCat}</div>
+          <div class="popup-title">${bName}</div>
+          <div class="popup-coords"><i class="fa-solid fa-location-crosshairs"></i> ${lat}° N, ${lng}° E</div>
+          <div class="popup-desc">${bDesc}</div>
+          <div class="popup-meta">Height: ${bHeight}m · ${bLevels} Floors</div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="popup-action-btn" onclick="openDrawer('route-drawer')" style="flex:1;">
+              <i class="fa-solid fa-diamond-turn-right"></i> Route
+            </button>
+            <button class="popup-action-btn" onclick="openDrawer('ai-drawer')" style="flex:1;background:rgba(0,119,182,0.6);">
+              <i class="fa-solid fa-sparkles"></i> AI Info
+            </button>
+          </div>
+        </div>
+      `;
+
+      currentPopup = new maplibregl.Popup({ offset: [0, -48], closeButton: true, anchor: 'bottom' })
+        .setLngLat(coords)
+        .setHTML(html)
+        .addTo(map);
+    }
+
+    // Top Category Filters
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      if (cat === 'all') {
+        beaconMarkers.forEach(m => {
+          m.getElement().style.display = 'flex';
+        });
+        resetCampusView();
+        return;
+      }
+
+      beaconMarkers.forEach(m => {
+        const el = m.getElement();
+        if (el.dataset.cat === cat) {
+          el.style.display = 'flex';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+
+      const target = LANDMARKS.find(lm => lm.cat === cat);
+      if (target) {
+        map.flyTo({
+          center: target.coords,
+          zoom: 17.2,
+          pitch: 58,
+          duration: 1200
+        });
+      }
+    }
+
+    function resetCampusView() {
+      if (currentPopup) currentPopup.remove();
+      map.flyTo({
+        center: LPU_CENTER,
+        zoom: 16.4,
+        pitch: 56,
+        bearing: -22,
+        duration: 1200
+      });
+    }
+
+    function toggle3DPitch() {
+      currentPitch = currentPitch === 0 ? 58 : 0;
+      map.easeTo({ pitch: currentPitch, duration: 800 });
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    function openDrawer(id) {
+      document.querySelectorAll('.drawer').forEach(d => {
+        if (d.id !== id) d.classList.remove('open');
+      });
+      const el = document.getElementById(id);
+      if (el) el.classList.add('open');
+    }
+
+    function closeDrawer(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('open');
+    }
+
+    function showBuildingDetails(props, coords) {
+      const bName = props.name || 'Campus Building';
+      const bCat = (props.category || 'CAMPUS HUB').toUpperCase();
+      const bDesc = props.desc || 'Surveyed building at Lovely Professional University.';
+      const bHeight = props.height ? props.height : 25;
+      const bLevels = props.levels ? props.levels : Math.round(bHeight / 4);
+
+      document.getElementById('bd-title').textContent = bName;
+      document.getElementById('bd-cat').textContent = bCat;
+      document.getElementById('bd-desc').textContent = bDesc;
+      
+      const lat = coords ? coords[1].toFixed(6) : (selectedBuilding ? '31.253800' : '');
+      const lng = coords ? coords[0].toFixed(6) : (selectedBuilding ? '75.703800' : '');
+      const coordsHtml = coords ? `<div style="font-size:0.72rem;color:var(--cyan);font-family:'JetBrains Mono';margin:6px 0 10px;"><i class="fa-solid fa-location-crosshairs"></i> ${lat}° N, ${lng}° E</div>` : '';
+
+      document.getElementById('bd-height').innerHTML = `Height: ${bHeight} meters · ${bLevels} Storeys${coordsHtml}`;
+      selectedBuilding = props;
+      openDrawer('building-drawer');
+    }
+
+    function navToThisBuilding() {
+      closeDrawer('building-drawer');
+      openDrawer('route-drawer');
+      if (selectedBuilding) {
+        document.getElementById('route-to').value = selectedBuilding.id || 'unimall';
+        calculateRoute();
+      }
+    }
+
+    function calculateRoute() {
+      const pathCoordinates = [
+        [75.7032932, 31.2526252], // Central Library
+        [75.7039336, 31.2560662], // Admin Block 31
+        [75.7033124, 31.2552684], // CSE Block 34
+        [75.7040369, 31.2552337], // Polytechnic 57 & 58
+        [75.7049979, 31.2557162]  // UniMall
+      ];
+
+      if (map.getSource('route-line')) {
+        map.getSource('route-line').setData({
+          type: 'Feature',
+          geometry: { type: 'LineString', coordinates: pathCoordinates }
+        });
+      } else {
+        map.addSource('route-line', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: pathCoordinates }
+          }
+        });
+
+        map.addLayer({
+          id: 'route-glow',
+          type: 'line',
+          source: 'route-line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#00f0ff',
+            'line-width': 6,
+            'line-opacity': 0.85
+          }
+        });
+
+        map.addLayer({
+          id: 'route-core',
+          type: 'line',
+          source: 'route-line',
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 2,
+            'line-opacity': 0.95
+          }
+        });
+      }
+
+      map.fitBounds([
+        [75.7010, 31.2515],
+        [75.7065, 31.2570]
+      ], { pitch: 55, bearing: -20, padding: 80, duration: 1500 });
+    }
+
+    const GEMINI_API_KEY = ""; // Optional: Add Gemini API Key or rely on local campus knowledge base
+
+    const GEMINI_KNOWLEDGE = {
+      library: "📚 The Central University Library is open 7 AM to 11 PM daily (24/7 during end-term exams). It features 400,000+ print volumes, silent study cubicles, digital research repositories, and RFID checkout stations.",
+      unimall: "🛍️ UniMall & Block 15 is LPU's central shopping and services tower. It houses SAARSH Unisex Salon, food joints, stationery, electronics, ATMs, and the Hotel Management simulation suites.",
+      cse: "💻 Block 34 hosts the School of Computer Science & Engineering. It is equipped with Apple Mac Labs, Nvidia GPU AI workstations, IoT testbeds, and advanced networking labs.",
+      hostels: "🏡 LPU provides residential hostels: GH 9-12 & 21 for Girls (biometric turnstiles, 24/7 internal medical care), and BH 1-15 for Boys. Campus gate curfew is 10 PM.",
+      sports: "⚽ Block 47 Sports Stadium features indoor multi-sport wood courts, Olympic swimming pools, athletics synthetic track, and high-performance gyms. Open 5 AM - 10 PM.",
+      default: "🤖 I am NAVIA's Gemini agent. I can guide you through any building in LPU, provide class block directions, suggest dining spots, or help with UniMall bookings. Try asking about the Library, CSE Block, or UniMall!"
+    };
+
+    async function sendGeminiMsg() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const wrap = document.getElementById('chat-messages');
+
+      const userDiv = document.createElement('div');
+      userDiv.className = 'chat-bubble user';
+      userDiv.textContent = text;
+      wrap.appendChild(userDiv);
+      wrap.scrollTop = wrap.scrollHeight;
+
+      // Thinking indicator
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'chat-bubble ai';
+      aiDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thinking...';
+      wrap.appendChild(aiDiv);
+      wrap.scrollTop = wrap.scrollHeight;
+
+      // Call live Gemini API
+      if (GEMINI_API_KEY) {
+        try {
+          const sysPrompt = "You are NAVIA AI, an intelligent 3D GIS campus assistant for Lovely Professional University (LPU). Answer questions about LPU campus blocks (e.g. Block 34 for CSE, Central Library, UniMall, Sports Stadium Block 47, Girls Hostels GH 9-12 & 21, Boys Hostels BH 1-15), lab timings, routes, and facilities concisely in 2-3 friendly sentences.";
+          const payload = {
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: `${sysPrompt}\n\nStudent question: ${text}` }]
+              }
+            ]
+          };
+
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${GEMINI_API_KEY}`;
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (reply) {
+              aiDiv.textContent = reply.trim();
+              wrap.scrollTop = wrap.scrollHeight;
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn("Live Gemini API unavailable, falling back to local campus knowledge base", err);
+        }
+      }
+
+      // Fallback to local campus knowledge
+      const q = text.toLowerCase();
+      let reply = GEMINI_KNOWLEDGE.default;
+      if (q.includes('lib') || q.includes('book')) reply = GEMINI_KNOWLEDGE.library;
+      else if (q.includes('mall') || q.includes('salon') || q.includes('shop')) reply = GEMINI_KNOWLEDGE.unimall;
+      else if (q.includes('cse') || q.includes('block 34') || q.includes('computer')) reply = GEMINI_KNOWLEDGE.cse;
+      else if (q.includes('hostel') || q.includes('gh') || q.includes('bh')) reply = GEMINI_KNOWLEDGE.hostels;
+      else if (q.includes('sport') || q.includes('gym') || q.includes('pool')) reply = GEMINI_KNOWLEDGE.sports;
+
+      aiDiv.textContent = reply;
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+  </script>
+</body>
+</html>

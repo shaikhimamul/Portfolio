@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shekh Imamul Hauq | 3D Portfolio</title>
+  <meta name="description" content="Portfolio of Shekh Imamul Hauq — Computer Science Engineer, 3D & Spatial Tech Explorer, Game Designer, and Full-Stack Developer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <!-- LPU TRUE FLUID WAVE SITE PRELOADER -->
+  <div id="site-preloader" class="preloader-overlay">
+    <div class="preloader-vessel-wrap">
+      <div class="preloader-orbital-ring"></div>
+      <svg id="wave-loader-svg" width="140" height="140" viewBox="0 0 140 140" style="border-radius: 50%; overflow: hidden; display: block;">
+        <defs>
+          <!-- Outer circular vessel clip -->
+          <clipPath id="circle-clip">
+            <circle cx="70" cy="70" r="70" />
+          </clipPath>
+
+          <!-- Dynamic Wave Clip for the rising fluid -->
+          <clipPath id="wave-clip" clipPathUnits="userSpaceOnUse">
+            <path id="wave-clip-path" d="" />
+          </clipPath>
+
+          <!-- Wave Crest Glow Filter -->
+          <filter id="wave-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+
+        <!-- Base Ghost Silhouette Logo -->
+        <image href="lpu_logo_perfect_circle_smooth.png" x="0" y="0" width="140" height="140" clip-path="url(#circle-clip)" opacity="0.18" style="filter: grayscale(100%) contrast(1.2);" />
+
+        <!-- Full-Color Logo Revealed by Rising Fluid Wave -->
+        <image href="lpu_logo_perfect_circle_smooth.png" x="0" y="0" width="140" height="140" clip-path="url(#wave-clip)" style="filter: drop-shadow(0 0 8px rgba(220, 20, 60, 0.6));" />
+
+        <!-- Dual Layer Undulating Liquid Surface Waves -->
+        <path id="wave-crest-back" d="" fill="none" stroke="rgba(255, 179, 179, 0.55)" stroke-width="2.5" clip-path="url(#circle-clip)" />
+        <path id="wave-crest-front" d="" fill="none" stroke="#ff1f4f" stroke-width="3.5" filter="url(#wave-glow)" clip-path="url(#circle-clip)" />
+      </svg>
+    </div>
+
+    <div class="preloader-text-wrap">
+      <div class="preloader-uni-name">Lovely Professional University</div>
+      <div class="preloader-status">INITIALIZING PORTFOLIO <span id="preloader-percent">0%</span></div>
+      <div class="preloader-bar-wrap">
+        <div class="preloader-bar-fill" id="preloader-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive 3D WebGL / Canvas Constellation Background -->
+  <div id="canvas-container">
+    <canvas id="galaxy-canvas"></canvas>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+    <div class="ambient-glow glow-3"></div>
+  </div>
+
+  <!-- Custom Cursor Glow -->
+  <div class="cursor-glow" id="cursor-glow"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar-wrapper">
+    <nav class="navbar glass-panel">
+      <a href="#hero" class="nav-brand">
+        <span class="brand-avatar">SI</span>
+        <span class="brand-name">Shekh<span class="text-crimson">.</span></span>
+      </a>
+
+      <div class="nav-menu" id="nav-menu">
+        <a href="#hero" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#skills" class="nav-link">Skills</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#repository" class="nav-link">GitHub</a>
+        <a href="#achievements" class="nav-link">Achievements</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Web Audio sound effects toggle -->
+        <button id="sound-toggle" class="btn-icon" title="Toggle UI Sound Effects" aria-label="Toggle UI Sound Effects">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <!-- Resume Download CTA -->
+        <a href="resume.pdf" download="Shekh_Imamul_Hauq_Resume.pdf" class="btn btn-sm btn-outline-crimson" id="resume-btn">
+          <i class="fa-solid fa-download"></i>
+          <span>Resume</span>
+        </a>
+        <!-- Mobile hamburger toggle -->
+        <button id="mobile-toggle" class="btn-icon mobile-only" aria-label="Open Navigation Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero-section">
+      <div class="container hero-container">
+        <div class="hero-content">
+          <div class="hero-pill-badge animate-fade-in">
+            <span class="status-indicator"></span>
+            <span>Lovely Professional University • CSE</span>
+          </div>
+
+          <h1 class="hero-title">
+            Hi, I'm <span class="gradient-text">Shekh Imamul Hauq</span>
+          </h1>
+
+          <div class="hero-tagline-wrapper">
+            <span class="code-bracket">&lt;</span>
+            <span class="scramble-text" id="typewriter-text" data-phrases='[
+              "Driven by Curiosity. Powered by Code.",
+              "Spatial Intelligence & 3D Web Explorer",
+              "Game Designer & Systems Thinker",
+              "Building Software That Makes a Difference"
+            ]'>Driven by Curiosity. Powered by Code.</span>
+            <span class="cursor-blink">|</span>
+            <span class="code-bracket">/&gt;</span>
+          </div>
+
+          <p class="hero-description">
+            Passionate Computer Science Engineer transforming creative ideas into meaningful digital experiences. Specializing in full-stack web platforms, 3D spatial experiences, and immersive game worlds.
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="#projects" class="btn btn-crimson magnetic-btn">
+              <span>Explore My Work</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <a href="#contact" class="btn btn-ghost glass-panel magnetic-btn">
+              <i class="fa-regular fa-envelope"></i>
+              <span>Get in Touch</span>
+            </a>
+          </div>
+
+          <div class="hero-social-strip">
+            <span class="social-label">Connect:</span>
+            <a href="https://github.com/shaikhimamul" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub Profile">
+              <i class="fa-brands fa-github"></i>
+            </a>
+            <a href="mailto:shekhimamul312@gmail.com" class="social-link" title="Email Shekh">
+              <i class="fa-solid fa-envelope"></i>
+            </a>
+            <a href="#contact" class="social-link" title="Contact Form">
+              <i class="fa-solid fa-paper-plane"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="portrait-card glass-panel tilt-card" data-tilt>
+            <div class="portrait-glow"></div>
+            <div class="portrait-frame">
+              <img src="Photo.png" alt="Shekh Imamul Hauq" class="portrait-img" loading="eager">
+              <div class="portrait-overlay"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-down-indicator">
+        <a href="#about" aria-label="Scroll down">
+          <span class="mouse-icon">
+            <span class="wheel"></span>
+          </span>
+          <span class="scroll-text">Scroll to explore</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="section about-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">ABOUT ME</span>
+          <h2 class="section-title">The Mind Behind The <span class="text-crimson">Creation</span></h2>
+          <div class="section-divider"></div>
+        </div>
+
+        <div class="about-grid">
+          <div class="about-bio-card glass-panel tilt-card reveal-on-scroll" data-tilt>
+            <h3 class="card-heading">
+              <i class="fa-solid fa-terminal text-crimson"></i>
+              Engineering with Purpose
+            </h3>
+            <p class="about-text">
+              I am pursuing a <strong>Diploma in Computer Science and Engineering (CSE)</strong> at <strong>Lovely Professional University (LPU)</strong>. My philosophy is grounded in continuous experimentation: turning complex logic into seamless digital tools that people love interacting with.
+            </p>
+            <p class="about-text">
+              From leading a 36-hour hackathon team to engineer a 3D spatial campus navigation platform (NAVIA), to independently designing and deploying commercial web systems (SAARSH), to authoring game design specifications for multi-layered worlds (Cloudbound), I thrive at the crossroads where technical execution meets creative design.
+            </p>
+
+            <div class="about-stats-row">
+              <div class="stat-item">
+                <span class="stat-number">3+</span>
+                <span class="stat-label">Core Flagship Projects</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">36h</span>
+                <span class="stat-label">Hackathon Sprint Lead</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number">1st</span>
+                <span class="stat-label">Boards Honor (I.T & Science)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-info-cards reveal-on-scroll">
+            <div class="info-card glass-panel">
+              <div class="info-icon-well">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <div>
+                <span class="info-label">Education</span>
+                <h4 class="info-value">Diploma in Computer Science & Engineering (CSE)</h4>
+                <p class="info-detail">Lovely Professional University (LPU)</p>
+              </div>
+            </div>
+
+            <div class="info-card glass-panel">
+              <div class="info-icon-well">
+                <i class="fa-solid fa-compass"></i>
+              </div>
+              <div>
+                <span class="info-label">Domains of Exploration</span>
+                <h4 class="info-value">Software & Web • 3D Spatial • Game Systems</h4>
+                <p class="info-detail">Next.js, Three.js, Python, Blender & UI/UX</p>
+              </div>
+            </div>
+
+            <div class="info-card glass-panel">
+              <div class="info-icon-well">
+                <i class="fa-solid fa-lightbulb"></i>
+              </div>
+              <div>
+                <span class="info-label">Current Endeavors</span>
+                <h4 class="info-value">Cybersecurity Intern • Scaler Alumni</h4>
+                <p class="info-detail">LaunchEd Cybersecurity & Scaler School of Tech</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SKILLS SECTION -->
+    <section id="skills" class="section skills-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">EXPERTISE & CAPABILITIES</span>
+          <h2 class="section-title">Skills Backed by <span class="text-crimson">Evidence</span></h2>
+          <div class="section-divider"></div>
+        </div>
+
+        <div class="skills-grid">
+          <!-- Technical & Programming -->
+          <div class="skill-category-card glass-panel reveal-on-scroll">
+            <div class="category-header">
+              <div class="category-icon text-crimson">
+                <i class="fa-solid fa-code"></i>
+              </div>
+              <div>
+                <h3 class="category-title">Technical & Programming</h3>
+                <span class="category-count">Languages & Core Logic</span>
+              </div>
+            </div>
+
+            <div class="skill-items-list">
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-brands fa-python text-crimson"></i> Python</span>
+                  <span class="skill-level">Core Logic & Problem Solving</span>
+                </div>
+                <p class="skill-evidence">Applied in algorithmic programming, spatial routing data transformations, and logical problem-solving.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-brands fa-html5 text-crimson"></i> Modern Web Stack</span>
+                  <span class="skill-level">HTML5 / CSS3 / TypeScript</span>
+                </div>
+                <p class="skill-evidence">Engineered responsive applications, component architectures, and dynamic semantic interfaces.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-brands fa-react text-crimson"></i> React & Next.js</span>
+                  <span class="skill-level">Production Architecture</span>
+                </div>
+                <p class="skill-evidence">Leveraged Next.js 15 in NAVIA campus platform and SAARSH commercial salon web deployment.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3D, Spatial & Game Design -->
+          <div class="skill-category-card glass-panel reveal-on-scroll">
+            <div class="category-header">
+              <div class="category-icon text-rose">
+                <i class="fa-solid fa-cube"></i>
+              </div>
+              <div>
+                <h3 class="category-title">3D, Spatial & Game Design</h3>
+                <span class="category-count">Interactive Worlds</span>
+              </div>
+            </div>
+
+            <div class="skill-items-list">
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-solid fa-cubes text-rose"></i> Blender & 3D Modeling</span>
+                  <span class="skill-level">Digital Visualization</span>
+                </div>
+                <p class="skill-evidence">3D model generation, low-poly environmental assets, and digital design for games and visualization.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-solid fa-vr-cardboard text-rose"></i> Three.js & Spatial Tech</span>
+                  <span class="skill-level">Interactive WebGL</span>
+                </div>
+                <p class="skill-evidence">Procedural 3D buildings, pedestrian routing on custom geospatial meshes, and real-time canvas scenes.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-solid fa-gamepad text-rose"></i> Game Systems & GDD</span>
+                  <span class="skill-level">Unreal / Godot Pre-production</span>
+                </div>
+                <p class="skill-evidence">Authoring comprehensive Game Design Specifications (v1.1) for co-op airship navigation and mastery loops.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Creative, UI/UX & Multimedia -->
+          <div class="skill-category-card glass-panel reveal-on-scroll">
+            <div class="category-header">
+              <div class="category-icon text-crimson">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <div>
+                <h3 class="category-title">Creative & UI/UX Design</h3>
+                <span class="category-count">Visual Identity & Media</span>
+              </div>
+            </div>
+
+            <div class="skill-items-list">
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-brands fa-figma text-crimson"></i> Figma & Interface Design</span>
+                  <span class="skill-level">Wireframing & Prototyping</span>
+                </div>
+                <p class="skill-evidence">Crafted user journeys, visual layout hierarchies, and high-fidelity prototypes for web and app systems.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-solid fa-palette text-crimson"></i> Graphic Design & Branding</span>
+                  <span class="skill-level">Digital Assets</span>
+                </div>
+                <p class="skill-evidence">Canva Certified in AI & Graphic Design; creating cohesive brand identities, typography, and promotional assets.</p>
+              </div>
+
+              <div class="skill-item">
+                <div class="skill-top">
+                  <span class="skill-name"><i class="fa-solid fa-video text-crimson"></i> Multimedia & Video Editing</span>
+                  <span class="skill-level">Visual Storytelling</span>
+                </div>
+                <p class="skill-evidence">Pacing, motion transitions, audio-visual synchrony, and video presentations for product demos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS SECTION (THE 5-PART STORY EXHIBITION) -->
+    <section id="projects" class="section projects-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">PORTFOLIO EXHIBITS</span>
+          <h2 class="section-title">Featured <span class="text-crimson">Projects</span></h2>
+          <p class="section-subtitle">Explore projects with their journey</p>
+          <div class="section-divider"></div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="project-filters reveal-on-scroll">
+          <button class="filter-btn active" data-filter="all">All Projects (3)</button>
+          <button class="filter-btn" data-filter="spatial">Spatial 3D &amp; AI</button>
+          <button class="filter-btn" data-filter="commercial">Commercial Web</button>
+          <button class="filter-btn" data-filter="game">Game Design</button>
+        </div>
+
+        <div class="projects-grid">
+          <!-- PROJECT 1: NAVIA (Project-101) -->
+          <article class="project-card glass-panel tilt-card reveal-on-scroll" data-category="spatial" data-tilt>
+            <div class="project-media-wrap">
+              <div class="project-badge-pill ai-badge"><i class="fa-brands fa-github"></i>&nbsp; Open Source · MIT · CodeFlux Round 2</div>
+              <div class="navia-repo-visual">
+                <div class="navia-repo-visual-inner">
+                  <div class="navia-repo-logo">
+                    <img src="assets/navia-monogram.png" alt="NAVIA Monogram"
+                         style="height:64px;width:64px;object-fit:contain;filter:drop-shadow(0 0 16px rgba(255,120,0,0.55));">
+                  </div>
+                  <div class="navia-repo-path">id40 / <span>Project-101</span></div>
+                  <div class="repo-lang-bar">
+                    <div class="lang-segment" style="width:49.9%;background:#3178c6;" title="TypeScript 49.9%"></div>
+                    <div class="lang-segment" style="width:44.4%;background:#f1e05a;" title="JavaScript 44.4%"></div>
+                    <div class="lang-segment" style="width:1.9%;background:#563d7c;" title="CSS 1.9%"></div>
+                    <div class="lang-segment" style="width:1.6%;background:#3572a5;" title="Python 1.6%"></div>
+                    <div class="lang-segment" style="width:2.2%;background:#e34c26;" title="HTML + PLpgSQL 2.2%"></div>
+                  </div>
+                  <div class="repo-lang-labels">
+                    <span><span class="lang-dot" style="background:#3178c6;"></span>TypeScript 49.9%</span>
+                    <span><span class="lang-dot" style="background:#f1e05a;"></span>JS 44.4%</span>
+                    <span><span class="lang-dot" style="background:#563d7c;"></span>CSS 1.9%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-body">
+              <div class="project-meta-row">
+                <span class="project-tag"><i class="fa-solid fa-cube"></i> Spatial 3D &amp; AI</span>
+                <span class="project-role-badge">Lead Dev &amp; Architect</span>
+              </div>
+
+              <h3 class="project-title">NAVIA — LPU 3D Campus Intelligence Platform</h3>
+
+              <p class="project-summary">
+                Full-stack GIS digital twin for LPU campus — 3D walkable navigation, Pokémon Go-style avatar StreetView, Gemini 2.5 Flash AI assistant, indoor multi-level routing, and a secure encrypted student vault. Built with Next.js 15 &amp; TypeScript.
+              </p>
+
+              <div class="project-tech-chips">
+                <span class="tech-chip">Next.js 15</span>
+                <span class="tech-chip">TypeScript</span>
+                <span class="tech-chip">Three.js</span>
+                <span class="tech-chip">MapLibre GL v6</span>
+                <span class="tech-chip">Gemini 2.5 Flash</span>
+                <span class="tech-chip">React Three Fiber</span>
+                <span class="tech-chip">Turf.js</span>
+                <span class="tech-chip">PostgreSQL</span>
+              </div>
+
+              <div class="project-footer project-footer-trio">
+                <button class="btn btn-sm btn-ghost open-story-modal" data-project="navia" title="Explore project journey">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Journey</span>
+                </button>
+                <a href="https://github.com/id40/Project-101" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-crimson" style="text-decoration:none;" title="View GitHub repository">
+                  <i class="fa-brands fa-github"></i>
+                  <span>GitHub</span>
+                </a>
+                <a href="navia-demo/index.html" target="_blank" class="btn btn-sm btn-crimson" style="text-decoration:none;" title="Launch interactive live demo">
+                  <i class="fa-solid fa-play"></i>
+                  <span>Live Demo</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- PROJECT 2: SAARSH SALON -->
+          <article class="project-card glass-panel tilt-card reveal-on-scroll" data-category="commercial" data-tilt>
+            <div class="project-media-wrap">
+              <div class="project-badge-pill commercial-badge">Commercial Launch</div>
+              <img src="Saarsh Salon.png" alt="SAARSH Unisex Salon & Academy Commercial Platform" class="project-image-cover" loading="lazy">
+              <div class="image-gradient-overlay"></div>
+            </div>
+
+            <div class="project-body">
+              <div class="project-meta-row">
+                <span class="project-tag"><i class="fa-solid fa-globe"></i> Commercial Web</span>
+                <span class="project-role-badge">Solo Developer</span>
+              </div>
+
+              <h3 class="project-title">SAARSH Unisex Salon & Academy Commercial Platform</h3>
+              
+              <p class="project-summary">
+                An end-to-end modern digital brand showcase and customer discovery website for a salon & academy, built with TypeScript, Next.js, and Firebase.
+              </p>
+
+              <div class="project-tech-chips">
+                <span class="tech-chip">TypeScript</span>
+                <span class="tech-chip">Next.js</span>
+                <span class="tech-chip">Tailwind CSS</span>
+                <span class="tech-chip">Firebase</span>
+                <span class="tech-chip">Vercel</span>
+              </div>
+
+              <div class="project-footer">
+                <button class="btn btn-sm btn-ghost open-story-modal" data-project="saarsh">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Explore Journey</span>
+                </button>
+                <a href="https://saarshsalon.vercel.app" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-crimson">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                  <span>Live Site</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <!-- PROJECT 3: CLOUDBOUND -->
+          <article class="project-card glass-panel tilt-card reveal-on-scroll" data-category="game" data-tilt>
+            <div class="project-media-wrap">
+              <div class="project-badge-pill game-badge">Game Pre-Production</div>
+              <img src="Cloudbound.png" alt="Cloudbound Game Concept Art" class="project-image-cover" loading="lazy">
+              <div class="image-gradient-overlay"></div>
+            </div>
+
+            <div class="project-body">
+              <div class="project-meta-row">
+                <span class="project-tag"><i class="fa-solid fa-gamepad"></i> Game Design & 3D</span>
+                <span class="project-role-badge">Creator & Lead Designer</span>
+              </div>
+
+              <h3 class="project-title">Cloudbound — Cooperative Open-World Adventure</h3>
+              
+              <p class="project-summary">
+                A 2–4 player cooperative adventure featuring floating island exploration, modular customizable airship flight mechanics, fruit-based mastery powers, and balanced multiplayer progression.
+              </p>
+
+              <div class="project-tech-chips">
+                <span class="tech-chip">Blender 3D</span>
+                <span class="tech-chip">GDD v1.1</span>
+                <span class="tech-chip">Unreal / Godot</span>
+                <span class="tech-chip">Systems Balancing</span>
+              </div>
+
+              <div class="project-footer">
+                <button class="btn btn-sm btn-ghost open-story-modal" data-project="cloudbound">
+                  <i class="fa-solid fa-book-open"></i>
+                  <span>Explore Journey</span>
+                </button>
+                <button class="btn btn-sm btn-crimson view-artwork-btn" data-img="Cloudbound.png">
+                  <i class="fa-regular fa-image"></i>
+                  <span>View Artwork</span>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+<!-- REPOSITORY SPOTLIGHT — Project-101 / NAVIA -->
+    <section id="repository" class="section repository-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">GITHUB · OPEN SOURCE</span>
+          <h2 class="section-title">Repository <span class="text-crimson">Spotlight</span></h2>
+          <p class="section-subtitle">A deep-dive into the architecture &amp; engineering behind NAVIA</p>
+          <div class="section-divider"></div>
+        </div>
+
+        <div class="repo-spotlight-wrap reveal-on-scroll">
+
+          <!-- TOP: Repo Header Card -->
+          <div class="repo-header-card glass-panel">
+            <div class="repo-header-left">
+              <div class="repo-owner-avatar" style="background:#1a1a1a;">
+                <img src="assets/navia-monogram.png" alt="NAVIA" width="40" height="40"
+                     style="object-fit:contain;padding:4px;"
+                     onerror="this.src='https://github.com/id40.png'">
+              </div>
+              <div class="repo-header-info">
+                <div class="repo-full-name">
+                  <i class="fa-brands fa-github repo-gh-icon"></i>
+                  <span class="repo-owner">id40</span>
+                  <span class="repo-sep">/</span>
+                  <span class="repo-name">Project-101</span>
+                  <span class="repo-public-badge">Public</span>
+                </div>
+                <div class="repo-desc-text">NAVIA — LPU 3D Campus Navigator · Full-stack GIS digital twin with AI, avatar StreetView, indoor routing &amp; secure student vault</div>
+              </div>
+            </div>
+            <div class="repo-header-right">
+              <a href="https://github.com/id40/Project-101" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-crimson">
+                <i class="fa-brands fa-github"></i> View on GitHub
+              </a>
+              <a href="navia-demo/index.html" target="_blank" class="btn btn-sm btn-crimson" style="text-decoration:none;">
+                <i class="fa-solid fa-rocket"></i> Live Demo
+              </a>
+            </div>
+          </div>
+
+          <!-- MIDDLE: Feature Grid + Tech Info -->
+          <div class="repo-middle-grid">
+
+            <!-- Feature Showcase -->
+            <div class="repo-features-panel glass-panel">
+              <div class="repo-panel-title"><i class="fa-solid fa-sparkles text-crimson"></i> Core Features</div>
+              <div class="feature-showcase-grid">
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(49,120,198,0.15);border-color:rgba(49,120,198,0.3);">🏛️</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">3D GIS Campus Digital Twin</div>
+                    <div class="feature-showcase-desc">OSM-surveyed building footprints rendered as a fully navigable 3D architectural twin of LPU's 600-acre campus</div>
+                  </div>
+                </div>
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(220,20,60,0.12);border-color:rgba(220,20,60,0.3);">🚶</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">Avatar StreetView Mode</div>
+                    <div class="feature-showcase-desc">Ivan 3D character avatar walks campus paths in a Pokémon Go-inspired first-person exploration mode</div>
+                  </div>
+                </div>
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(34,197,94,0.12);border-color:rgba(34,197,94,0.3);">🤖</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">Gemini 2.5 Flash AI Assistant</div>
+                    <div class="feature-showcase-desc">On-campus AI guide powered by Google Gemini 2.5 Flash — answers questions, navigates, and suggests routes</div>
+                  </div>
+                </div>
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(168,85,247,0.12);border-color:rgba(168,85,247,0.3);">🗺️</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">Indoor Multi-level Routing</div>
+                    <div class="feature-showcase-desc">Dijkstra-based pedestrian routing extends indoors — navigate between floors and rooms inside campus buildings</div>
+                  </div>
+                </div>
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(245,197,24,0.12);border-color:rgba(245,197,24,0.3);">🔐</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">Secure Student Vault</div>
+                    <div class="feature-showcase-desc">AES-encrypted SQLite database with scrypt password hashing — stores student profiles and campus preferences securely</div>
+                  </div>
+                </div>
+                <div class="feature-showcase-item">
+                  <div class="feature-showcase-icon" style="background:rgba(220,20,60,0.12);border-color:rgba(220,20,60,0.3);">📋</div>
+                  <div class="feature-showcase-body">
+                    <div class="feature-showcase-name">5 Architecture Docs</div>
+                    <div class="feature-showcase-desc">PRD, System Rules, DB Schema, Brand Asset Kit &amp; Seed Data — full professional documentation suite</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right column: Stats + Contributors -->
+            <div class="repo-right-col">
+
+              <!-- Language Bar -->
+              <div class="repo-lang-panel glass-panel">
+                <div class="repo-panel-title"><i class="fa-solid fa-code text-crimson"></i> Language Breakdown</div>
+                <div class="repo-lang-bar-full">
+                  <div style="width:49.9%;background:#3178c6;border-radius:4px 0 0 4px;" title="TypeScript 49.9%"></div>
+                  <div style="width:44.4%;background:#f1e05a;" title="JavaScript 44.4%"></div>
+                  <div style="width:1.9%;background:#563d7c;" title="CSS 1.9%"></div>
+                  <div style="width:1.6%;background:#3572a5;" title="Python 1.6%"></div>
+                  <div style="width:1.2%;background:#e34c26;" title="HTML 1.2%"></div>
+                  <div style="width:1%;background:#336791;border-radius:0 4px 4px 0;" title="PLpgSQL 1%"></div>
+                </div>
+                <div class="repo-lang-detail">
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#3178c6;"></span><span>TypeScript</span><span class="lang-pct">49.9%</span></div>
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#f1e05a;"></span><span>JavaScript</span><span class="lang-pct">44.4%</span></div>
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#563d7c;"></span><span>CSS</span><span class="lang-pct">1.9%</span></div>
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#3572a5;"></span><span>Python</span><span class="lang-pct">1.6%</span></div>
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#e34c26;"></span><span>HTML</span><span class="lang-pct">1.2%</span></div>
+                  <div class="lang-detail-item"><span class="lang-dot-lg" style="background:#336791;"></span><span>PLpgSQL</span><span class="lang-pct">1.0%</span></div>
+                </div>
+              </div>
+
+              <!-- Tech Stack -->
+              <div class="repo-tech-panel glass-panel">
+                <div class="repo-panel-title"><i class="fa-solid fa-layer-group text-crimson"></i> Package Dependencies</div>
+                <div class="repo-dep-list">
+                  <div class="dep-item"><span class="dep-name">next</span><span class="dep-ver">^15.2.0</span></div>
+                  <div class="dep-item"><span class="dep-name">react</span><span class="dep-ver">^19.0.0</span></div>
+                  <div class="dep-item"><span class="dep-name">three</span><span class="dep-ver">^0.174.0</span></div>
+                  <div class="dep-item"><span class="dep-name">@react-three/fiber</span><span class="dep-ver">^9.0.4</span></div>
+                  <div class="dep-item"><span class="dep-name">maplibre-gl</span><span class="dep-ver">^6.9.0</span></div>
+                  <div class="dep-item"><span class="dep-name">@google/genai</span><span class="dep-ver">^2.22.0</span></div>
+                  <div class="dep-item"><span class="dep-name">@turf/turf</span><span class="dep-ver">^7.4.0</span></div>
+                  <div class="dep-item"><span class="dep-name">zod</span><span class="dep-ver">^3.24.2</span></div>
+                  <div class="dep-item"><span class="dep-name">typescript</span><span class="dep-ver">^5.8.2</span></div>
+                  <div class="dep-item"><span class="dep-name">tailwindcss</span><span class="dep-ver">^3.4.17</span></div>
+                </div>
+              </div>
+
+              <!-- Contributors -->
+              <div class="repo-contrib-panel glass-panel">
+                <div class="repo-panel-title"><i class="fa-solid fa-users text-crimson"></i> Contributors</div>
+                <div class="repo-contributors">
+                  <div class="contributor-item">
+                    <img src="https://github.com/shaikhimamul.png" width="36" height="36" alt="shaikhimamul"
+                         onerror="this.src='https://github.com/id40.png'" class="contributor-avatar">
+                    <div class="contributor-info">
+                      <div class="contributor-name">Shekh Imamul Hauq</div>
+                      <div class="contributor-role">Lead Dev &amp; Architect</div>
+                    </div>
+                    <span class="contributor-badge" style="background:rgba(220,20,60,0.15);color:#ffb3b3;">Lead</span>
+                  </div>
+                  <div class="contributor-item">
+                    <img src="https://github.com/Moonlit-Ogre.png" width="36" height="36" alt="Moonlit-Ogre" class="contributor-avatar"
+                         onerror="this.style.display='none'">
+                    <div class="contributor-info">
+                      <div class="contributor-name">Moonlit-Ogre</div>
+                      <div class="contributor-role">Team Member</div>
+                    </div>
+                    <span class="contributor-badge">Dev</span>
+                  </div>
+                  <div class="contributor-item">
+                    <img src="https://github.com/vitthaltiwari208-coder.png" width="36" height="36" alt="vitthaltiwari208-coder" class="contributor-avatar"
+                         onerror="this.style.display='none'">
+                    <div class="contributor-info">
+                      <div class="contributor-name">vitthaltiwari208-coder</div>
+                      <div class="contributor-role">Team Member</div>
+                    </div>
+                    <span class="contributor-badge">Dev</span>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- /repo-right-col -->
+          </div><!-- /repo-middle-grid -->
+
+          <!-- BOTTOM: Documentation PDFs -->
+          <div class="repo-docs-panel glass-panel reveal-on-scroll">
+            <div class="repo-panel-title"><i class="fa-solid fa-file-pdf text-crimson"></i> Project Documentation</div>
+            <div class="repo-docs-grid">
+              <a href="https://github.com/id40/Project-101/blob/main/01_PRD.pdf" target="_blank" rel="noopener" class="doc-card">
+                <i class="fa-solid fa-file-pdf doc-icon"></i>
+                <div><div class="doc-name">01_PRD.pdf</div><div class="doc-desc">Product Requirements Document</div></div>
+              </a>
+              <a href="https://github.com/id40/Project-101/blob/main/02_SYSTEM_RULES.pdf" target="_blank" rel="noopener" class="doc-card">
+                <i class="fa-solid fa-file-pdf doc-icon"></i>
+                <div><div class="doc-name">02_SYSTEM_RULES.pdf</div><div class="doc-desc">Architecture &amp; Business Logic</div></div>
+              </a>
+              <a href="https://github.com/id40/Project-101/blob/main/03_DATABASE_SCHEMA.pdf" target="_blank" rel="noopener" class="doc-card">
+                <i class="fa-solid fa-file-pdf doc-icon"></i>
+                <div><div class="doc-name">03_DATABASE_SCHEMA.pdf</div><div class="doc-desc">Database ERD &amp; Schema</div></div>
+              </a>
+              <a href="https://github.com/id40/Project-101/blob/main/04_BRAND_ASSET_KIT.pdf" target="_blank" rel="noopener" class="doc-card">
+                <i class="fa-solid fa-file-pdf doc-icon"></i>
+                <div><div class="doc-name">04_BRAND_ASSET_KIT.pdf</div><div class="doc-desc">Brand Guidelines &amp; Design System</div></div>
+              </a>
+              <a href="https://github.com/id40/Project-101/blob/main/05_SEED_DATA.pdf" target="_blank" rel="noopener" class="doc-card">
+                <i class="fa-solid fa-file-pdf doc-icon"></i>
+                <div><div class="doc-name">05_SEED_DATA.pdf</div><div class="doc-desc">Campus Buildings &amp; Pathways Data</div></div>
+              </a>
+            </div>
+          </div>
+
+        </div><!-- /repo-spotlight-wrap -->
+      </div>
+    </section>
+
+    <!-- ACHIEVEMENTS, TROPHIES & VERIFIED PROOFS -->
+    <section id="achievements" class="section achievements-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">HONORS & VERIFIED CREDENTIALS</span>
+          <h2 class="section-title">Trophies, Certifications & <span class="text-crimson">Proof Gallery</span></h2>
+          <p class="section-subtitle">Tangible physical and digital evidence of academic merit, hackathon leadership, and industry qualifications.</p>
+          <div class="section-divider"></div>
+        </div>
+
+        <!-- SPOTLIGHT: THE PHYSICAL TROPHIES -->
+        <div class="trophies-spotlight reveal-on-scroll">
+          <!-- TROPHY 1: OVERALL 10TH BOARDS TOPPER -->
+          <div class="trophy-card glass-panel tilt-card" data-tilt>
+            <div class="trophy-media">
+              <span class="trophy-gold-badge"><i class="fa-solid fa-crown"></i> 1st Rank in School</span>
+              <img src="assets/proofs/Topper Trophy on Wood Table.png" alt="10th Boards School Topper Trophy" class="trophy-img" loading="lazy">
+              <div class="trophy-overlay">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Topper Trophy on Wood Table.png" data-title="10th Board Examination — Overall School Topper Trophy" data-caption="Awarded 1st place in the entire school for achieving the top aggregate score in the Class 10 Board Examinations.">
+                  <i class="fa-solid fa-expand"></i>
+                  <span>Inspect Trophy</span>
+                </button>
+              </div>
+            </div>
+            <div class="trophy-content">
+              <div class="trophy-tag"><i class="fa-solid fa-trophy text-rose"></i> Academic Excellence Award</div>
+              <h3 class="trophy-title">10th Board Overall School Topper Trophy</h3>
+              <p class="trophy-desc">Awarded the premier 1st Rank Trophy for outstanding academic accomplishment and securing the highest aggregate percentage in the school.</p>
+            </div>
+          </div>
+
+          <!-- TROPHY 2: GOLD SUBJECT TOPPER -->
+          <div class="trophy-card glass-panel tilt-card" data-tilt>
+            <div class="trophy-media">
+              <span class="trophy-gold-badge"><i class="fa-solid fa-medal"></i> Gold Subject Topper</span>
+              <img src="assets/proofs/Gold Subject Topper Trophy on Dark Wood.png" alt="Gold Subject Topper Trophy" class="trophy-img" loading="lazy">
+              <div class="trophy-overlay">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Gold Subject Topper Trophy on Dark Wood.png" data-title="Gold Subject Topper Trophy — Information Technology & Science" data-caption="Conferred with the Gold Subject Topper trophy in recognition of scoring the highest marks in both Information Technology and Science.">
+                  <i class="fa-solid fa-expand"></i>
+                  <span>Inspect Trophy</span>
+                </button>
+              </div>
+            </div>
+            <div class="trophy-content">
+              <div class="trophy-tag"><i class="fa-solid fa-microchip text-crimson"></i> Subject Distinction Award</div>
+              <h3 class="trophy-title">Gold Subject Topper (I.T & Science)</h3>
+              <p class="trophy-desc">Conferred with the Gold Subject Topper trophy for demonstrating exemplary technical and scientific excellence with top scores in I.T and Science.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- CERTIFICATION & CREDENTIALS GALLERY WITH CATEGORY FILTERS -->
+        <div class="proofs-filter-wrap reveal-on-scroll">
+          <div class="gallery-header-row">
+            <div>
+              <h3 class="gallery-subtitle">Documented Proofs & Credentials</h3>
+              <p class="gallery-subtext">Click any document to inspect the original high-resolution certificate.</p>
+            </div>
+            <div class="proof-filters">
+              <button class="proof-filter-btn active" data-proof-filter="all">All Proofs (10)</button>
+              <button class="proof-filter-btn" data-proof-filter="trophy">Trophies (2)</button>
+              <button class="proof-filter-btn" data-proof-filter="tech">Tech & Hackathon (2)</button>
+              <button class="proof-filter-btn" data-proof-filter="design">Design & AI (2)</button>
+              <button class="proof-filter-btn" data-proof-filter="academic">Board Records (4)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALL 10 PROOFS IN INTERACTIVE CARDS -->
+        <div class="proofs-grid reveal-on-scroll">
+          <!-- 1. CodeFlux Hackathon -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="tech" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip tech"><i class="fa-solid fa-code"></i> Hackathon</span>
+              <img src="assets/proofs/CodeFlux.png" alt="CodeFlux Hackathon Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/CodeFlux.png" data-title="CodeFlux 36-Hour Hackathon Certificate & Proof" data-caption="Led team into Round 2 of the 36-hour CodeFlux Hackathon at Lovely Professional University for developing the NAVIA 3D Spatial Campus platform.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Lovely Professional University</span>
+              <h4 class="proof-title">CodeFlux Hackathon Round 2 Finalist</h4>
+              <p class="proof-summary">Team Leader of NAVIA 3D spatial navigation platform during the 36-hour sprint.</p>
+            </div>
+          </div>
+
+          <!-- 2. SST Scaler Certificate -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="tech" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip tech"><i class="fa-solid fa-laptop-code"></i> Internship</span>
+              <img src="assets/proofs/SST Certificate.png" alt="Scaler School of Technology Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/SST Certificate.png" data-title="Scaler School of Technology (SST) Certificate" data-caption="Student Intern certification from Scaler School of Technology, focusing on software engineering principles and computer science fundamentals.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Scaler School of Technology</span>
+              <h4 class="proof-title">Student Intern Program Certification</h4>
+              <p class="proof-summary">Comprehensive software engineering and algorithmic foundations training.</p>
+            </div>
+          </div>
+
+          <!-- 3. Canva AI Essentials -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="design" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip design"><i class="fa-solid fa-wand-magic-sparkles"></i> AI & Design</span>
+              <img src="assets/proofs/Canva Ai Essentials Certificate.jpg" alt="Canva AI Essentials Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Canva Ai Essentials Certificate.jpg" data-title="Canva AI Essentials Official Certification" data-caption="Official credential validating proficiency in utilizing AI-powered design tools, generative media workflows, and creative automation.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Canva Certified</span>
+              <h4 class="proof-title">Canva AI Essentials Certificate</h4>
+              <p class="proof-summary">Mastery of generative AI media tools and creative workflow automation.</p>
+            </div>
+          </div>
+
+          <!-- 4. Canva Graphic Design -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="design" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip design"><i class="fa-solid fa-palette"></i> Design</span>
+              <img src="assets/proofs/Canva Graphic Design Certificate.jpg" alt="Canva Graphic Design Essentials Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Canva Graphic Design Certificate.jpg" data-title="Canva Graphic Design Essentials Certification" data-caption="Certification validating core principles of graphic design, typography, color harmony, and visual composition.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Canva Certified</span>
+              <h4 class="proof-title">Graphic Design Essentials Certificate</h4>
+              <p class="proof-summary">Principles of digital composition, brand layout, and color theory.</p>
+            </div>
+          </div>
+
+          <!-- 5. 10th Topper Trophy -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="trophy" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip trophy"><i class="fa-solid fa-crown"></i> Rank #1 Trophy</span>
+              <img src="assets/proofs/Topper Trophy on Wood Table.png" alt="10th Board Overall School Topper Trophy" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Topper Trophy on Wood Table.png" data-title="10th Board Examination — Overall School Topper Trophy" data-caption="Awarded 1st place in the school for top academic performance across all Class 10 Board Examinations.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">School Academic Board</span>
+              <h4 class="proof-title">Overall School Topper Trophy</h4>
+              <p class="proof-summary">Physical trophy awarded for standing 1st rank in the school 10th Boards.</p>
+            </div>
+          </div>
+
+          <!-- 6. Gold Subject Topper Trophy -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="trophy" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip trophy"><i class="fa-solid fa-medal"></i> Gold Trophy</span>
+              <img src="assets/proofs/Gold Subject Topper Trophy on Dark Wood.png" alt="Gold Subject Topper Trophy" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/Gold Subject Topper Trophy on Dark Wood.png" data-title="Gold Subject Topper Trophy — I.T & Science" data-caption="Conferred with the Gold Subject Topper trophy for highest marks in Information Technology and Science.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">School Academic Board</span>
+              <h4 class="proof-title">Gold Subject Topper (I.T & Science)</h4>
+              <p class="proof-summary">Physical gold trophy for highest marks in Science and Information Technology.</p>
+            </div>
+          </div>
+
+          <!-- 7. 10th Certificate 1 -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="academic" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip academic"><i class="fa-solid fa-award"></i> Merit Certificate</span>
+              <img src="assets/proofs/10th Ceritificate_1_20261117_191312.jpg" alt="10th Board Certificate of Merit" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/10th Ceritificate_1_20261117_191312.jpg" data-title="10th Board Academic Certificate of Merit" data-caption="Official Certificate of Merit honoring distinguished performance in the 10th Board Examinations.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Academic Examination Board</span>
+              <h4 class="proof-title">10th Board Academic Merit Certificate</h4>
+              <p class="proof-summary">Official verification of academic distinction and school ranking.</p>
+            </div>
+          </div>
+
+          <!-- 8. 10th Certificate 2 -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="academic" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip academic"><i class="fa-solid fa-certificate"></i> Achievement</span>
+              <img src="assets/proofs/10th Certificate_2_20261117_191347.jpg" alt="10th Academic Achievement Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/10th Certificate_2_20261117_191347.jpg" data-title="10th Board Academic Achievement Certificate" data-caption="Formal credential recognizing consistent academic excellence and subject proficiency.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Academic Examination Board</span>
+              <h4 class="proof-title">Academic Achievement Certificate</h4>
+              <p class="proof-summary">Subject proficiency and academic honors documentation.</p>
+            </div>
+          </div>
+
+          <!-- 9. 10th Certificate 3 -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="academic" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip academic"><i class="fa-solid fa-star"></i> Excellence</span>
+              <img src="assets/proofs/10th Certificate_3_20261117_191421.jpg" alt="10th Academic Excellence Certificate" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/10th Certificate_3_20261117_191421.jpg" data-title="10th Board Course Excellence Certificate" data-caption="Official certificate acknowledging overall academic performance and school recognition.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Academic Examination Board</span>
+              <h4 class="proof-title">Course Excellence & Completion Certificate</h4>
+              <p class="proof-summary">Schooling completion credential with exceptional grade record.</p>
+            </div>
+          </div>
+
+          <!-- 10. 10th Official Marksheet -->
+          <div class="proof-card glass-panel tilt-card" data-proof-cat="academic" data-tilt>
+            <div class="proof-thumbnail-wrap">
+              <span class="proof-category-chip academic"><i class="fa-solid fa-file-invoice"></i> Marksheet</span>
+              <img src="assets/proofs/10th Marksheet.jpg" alt="Official 10th Marksheet" class="proof-thumb" loading="lazy">
+              <div class="proof-hover-action">
+                <button class="btn btn-sm btn-crimson view-proof-btn" data-img="assets/proofs/10th Marksheet.jpg" data-title="Official 10th Board Examination Marksheet" data-caption="Certified official gradesheet recording subject-by-subject scores, reflecting highest marks in Information Technology and Science.">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> View Proof
+                </button>
+              </div>
+            </div>
+            <div class="proof-details">
+              <span class="proof-issuer">Official Board of Secondary Education</span>
+              <h4 class="proof-title">Official 10th Board Marksheet</h4>
+              <p class="proof-summary">Verified grade transcript reflecting top scores in Science & I.T.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="section contact-section">
+      <div class="container">
+        <div class="section-header reveal-on-scroll">
+          <span class="section-eyebrow">GET IN TOUCH</span>
+          <h2 class="section-title">Let's Build Something <span class="text-crimson">Extraordinary</span></h2>
+          <p class="section-subtitle">Open for software engineering internships, collaborative tech initiatives, and game design discussions.</p>
+          <div class="section-divider"></div>
+        </div>
+
+        <div class="contact-grid">
+          <div class="contact-card glass-panel tilt-card reveal-on-scroll" data-tilt>
+            <div class="contact-badge">SAFE CONTACT</div>
+            <h3 class="contact-heading">Direct Inquiries</h3>
+            <p class="contact-sub">Have a project, role, or collaboration in mind? Reach out directly via email or check my GitHub repositories.</p>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="fa-solid fa-envelope"></i>
+              </div>
+              <div class="contact-info">
+                <span class="label">Email Address</span>
+                <a href="mailto:shekhimamul312@gmail.com" class="val text-crimson">shekhimamul312@gmail.com</a>
+              </div>
+              <button class="btn-copy" id="copy-email-btn" title="Copy email address" aria-label="Copy email address">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="fa-brands fa-github"></i>
+              </div>
+              <div class="contact-info">
+                <span class="label">GitHub Repositories</span>
+                <a href="https://github.com/shaikhimamul" target="_blank" rel="noopener noreferrer" class="val">github.com/shaikhimamul</a>
+              </div>
+            </div>
+
+            <div class="contact-item">
+              <div class="contact-icon">
+                <i class="fa-solid fa-location-dot"></i>
+              </div>
+              <div class="contact-info">
+                <span class="label">Base</span>
+                <span class="val">Lovely Professional University (LPU), India</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Quick Message Form -->
+          <div class="contact-form-wrap glass-panel reveal-on-scroll">
+            <h3 class="form-heading">Send a Quick Message</h3>
+            <form id="contact-form" class="contact-form">
+              <!-- Web3Forms Access Key: Enter your free access key from https://web3forms.com -->
+              <input type="hidden" name="access_key" id="contact-access-key" value="YOUR_ACCESS_KEY_HERE">
+              <div class="form-group">
+                <label for="form-name">Your Name</label>
+                <input type="text" id="form-name" required placeholder="e.g. Alex Morgan" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="form-email">Your Email</label>
+                <input type="email" id="form-email" required placeholder="e.g. alex@company.com" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="form-message">Message</label>
+                <textarea id="form-message" rows="4" required placeholder="Hi Shekh, I reviewed your portfolio and would like to discuss..." class="form-input"></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-crimson magnetic-btn w-full">
+                <span>Send Message</span>
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+              <div id="form-status" class="form-status-msg"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <a href="#hero" class="nav-brand">
+          <span class="brand-avatar">SI</span>
+          <span class="brand-name">Shekh Imamul Hauq</span>
+        </a>
+        <p class="footer-tagline">Driven by Curiosity • Powered by Code • Designed for Excellence</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="#hero">Home</a>
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
+      </div>
+
+      <div class="footer-right">
+        <p class="copyright">© 2026 Shekh Imamul Hauq. Crafted with Three.js & Modern Web Standards.</p>
+        <button id="back-to-top" class="back-to-top" title="Back to top" aria-label="Back to top">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 5-PART STORY MODAL -->
+  <div id="story-modal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal-dialog glass-panel" role="dialog" aria-modal="true">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Close details">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="modal-header">
+        <span class="modal-eyebrow text-crimson" id="modal-category">PROJECT CATEGORY</span>
+        <h2 class="modal-title" id="modal-title">Project Title</h2>
+        <div class="modal-meta" id="modal-meta">Role & Technologies</div>
+      </div>
+
+      <div class="modal-body" id="modal-content">
+        <!-- Injected via JavaScript dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- IMAGE LIGHTBOX MODAL -->
+  <div id="image-lightbox" class="lightbox-backdrop" aria-hidden="true">
+    <div class="lightbox-content">
+      <button class="lightbox-close" id="lightbox-close"><i class="fa-solid fa-xmark"></i></button>
+      <img id="lightbox-img" src="" alt="Full view">
+      <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="toast glass-panel"></div>
+
+  <!-- SCRIPTS -->
+  <!-- Three.js CDN with offline fallback safety -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
