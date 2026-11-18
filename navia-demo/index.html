@@ -624,9 +624,82 @@
     .b-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
 
     @media (max-width: 768px) {
-      .category-pills { max-width: 60vw; }
-      .drawer { width: calc(100vw - 32px); left: 16px; right: 16px; }
-      .hud-bottom-right { display: none; }
+      .top-bar {
+        padding: 8px 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+      .brand-pill {
+        padding: 5px 9px;
+        gap: 7px;
+      }
+      .brand-title {
+        font-size: 0.9rem;
+      }
+      .brand-badge {
+        display: none;
+      }
+      .top-right-tools {
+        gap: 6px;
+      }
+      .tool-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+      }
+      .category-pills {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 4px;
+        overflow-x: auto;
+        padding: 4px;
+        gap: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cat-btn {
+        padding: 5px 10px;
+        font-size: 0.72rem;
+      }
+      .bottom-dock {
+        left: 8px;
+        right: 8px;
+        transform: none;
+        width: calc(100% - 16px);
+        justify-content: space-between;
+        bottom: 8px;
+        padding: 6px 8px;
+        gap: 4px;
+      }
+      .dock-btn {
+        padding: 7px 10px;
+        font-size: 0.75rem;
+      }
+      .dock-btn span {
+        display: none;
+      }
+      .drawer {
+        width: calc(100vw - 16px);
+        left: 8px;
+        right: 8px;
+        bottom: 64px;
+        max-height: 60vh;
+        border-radius: 14px;
+      }
+      .search-box-wrap {
+        left: 8px;
+        right: 8px;
+        width: calc(100% - 16px);
+        top: 98px;
+      }
+      .hud-bottom-right {
+        display: none;
+      }
+      .hud-compass {
+        bottom: 70px;
+        right: 12px;
+      }
     }
   </style>
 </head>
